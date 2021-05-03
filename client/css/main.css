@@ -1,0 +1,14 @@
+.chatInput {
+  width: 100%;
+  font-size: 1.4rem;
+}
+
+.chatBox {
+  width: 100%;
+  height: 70vh;
+  margin-top: 1rem;
+  background-color: #eeeeee;
+  font-size: 1.1rem;
+  line-height: 1.7rem;
+  padding: 0.5rem;
+}

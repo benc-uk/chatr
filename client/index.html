@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatApp</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
+
+    <link rel="stylesheet" href="css/main.css" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.97em%22 font-size=%2280%22>💬</text></svg>"
+    />
+
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
+    <script type="module" src="js/app.js"></script>
+  </head>
+  <body>
+    <!-- Main app -->
+    <section class="section" id="app">
+      <div class="container">
+        <button @click="addChat()" class="button is-primary is-large">Add Chat</button>
+
+        <hr />
+
+        <div class="tabs is-toggle is-fullwidth">
+          <ul>
+            <li v-for="chat in chats" :class="{ 'is-active': chat.active }">
+              <a @click="switchChat" :data-chat-name="chat.name">💬 {{ chat.name }}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <chat v-for="(chat, index) in chats" :key="index" :group="chat.name" :active="chat.active"></chat>
+    </section>
+  </body>
+</html>
