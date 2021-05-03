@@ -1,1 +1,1 @@
-const API_ENDPOINT = 'https://6a7b45981243.ngrok.io'
+const API_ENDPOINT = 'https://chatr-api.azurewebsites.net'
