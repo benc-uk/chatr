@@ -1,1 +1,1 @@
-const API_ENDPOINT = ''
+const API_ENDPOINT = 'https://chatr.loophole.site'

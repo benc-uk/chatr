@@ -1,13 +1,13 @@
 {
   "routes": [
     {
-      "route": "/profile",
+      "route": "/",
       "allowedRoles": ["authenticated"]
     }
   ],
   "responseOverrides": {
     "401": {
-      "redirect": "/.auth/login/twitter",
+      "redirect": "/login.html",
       "statusCode": 302
     }
   }

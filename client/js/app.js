@@ -12,10 +12,11 @@ new Vue({
       // values are client side chat objects -> { id: string, name: string, active: bool, unreadCount: int }
       joinedChats: {},
       ws: null,
-      user: null,
+      user: false,
       allChats: {},
       // Map of chat id to server chat objects, synced with the server
       allUsers: {},
+      isAzureStaticWebApp: false,
     }
   },
 
@@ -24,12 +25,15 @@ new Vue({
     let userRes = await fetch(`/.auth/me`)
     if (!userRes.ok) {
       // Todo replace with prompt or get from auth system
-      this.user = `human ${Math.floor(Math.random() * 50)}` //prompt('What is your name')
+      const userName = prompt('What is your name')
+      if (!userName) window.location.href = window.location.href
+      this.user = userName
     } else {
-      let userData = await userRes.json()
-      this.user = userData.userDetails
-      console.log(userData)
+      let data = await userRes.json()
+      this.user = data.clientPrincipal.userDetails
+      this.isAzureStaticWebApp = true
     }
+    console.log('### USER IS:', this.user)
 
     // Get all existing chats from server
     let res = await fetch(`${API_ENDPOINT}/api/chats`)
@@ -44,6 +48,8 @@ new Vue({
     // Get URL & token to connect to Azure Web Pubsub
     res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
     let token = await res.json()
+
+    // Now connect to Azure Web PubSub
     this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
 
     // Handle messages from server
@@ -91,6 +97,9 @@ new Vue({
     },
 
     async joinChat(chatId, chatName = null) {
+      // Skip if we are already joined
+      if (this.joinedChats[chatId]) return
+
       this.deactivateChats()
       // Lookup name
       if (!chatName) chatName = this.allChats[chatId].name

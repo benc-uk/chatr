@@ -26,21 +26,21 @@ router.get('/api/getToken', async (req, res) => {
 //
 //
 //
-router.post('/api/createChat', async (req, res) => {
-  const chatRequest = req.body
+// router.post('/api/createChat', async (req, res) => {
+//   const chatRequest = req.body
 
-  const chatId = uuidv4()
-  const chat = { id: chatId, name: chatRequest.name, members: {}, private: chatRequest.private }
-  chatList[chatId] = chat
+//   const chatId = uuidv4()
+//   const chat = { id: chatId, name: chatRequest.name, members: {}, private: chatRequest.private }
+//   chatList[chatId] = chat
 
-  serviceClient.sendToAll({
-    chatEvent: 'chatCreated',
-    data: JSON.stringify(chat),
-  })
+//   serviceClient.sendToAll({
+//     chatEvent: 'chatCreated',
+//     data: JSON.stringify(chat),
+//   })
 
-  res.status(200).json({ id: chatId })
-  console.log(`### New chat ${chatRequest.name} was created`)
-})
+//   res.status(200).json({ id: chatId })
+//   console.log(`### New chat ${chatRequest.name} was created`)
+// })
 
 //
 //

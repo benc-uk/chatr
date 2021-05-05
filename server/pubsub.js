@@ -4,16 +4,16 @@ const { WebPubSubEventHandler } = require('@azure/web-pubsub-express')
 let chatList = require('./state').chatList
 let userList = require('./state').userList
 
-const CONN_STR = process.env['CONN_STR']
-const HUB = process.env['HUB'] || 'chat'
-if (!CONN_STR) {
-  console.log('### Fatal! CONN_STR is not set, exiting now')
+const pubSubConnStr = process.env['PUBSUB_CONNECTION_STRING']
+const pubSubHub = process.env['HUB'] || 'chat'
+if (!pubSubConnStr) {
+  console.log('### Fatal! PUBSUB_CONNECTION_STRING is not set, exiting now')
   process.exit(2)
 }
 
-const serviceClient = new WebPubSubServiceClient(CONN_STR, HUB)
+const serviceClient = new WebPubSubServiceClient(pubSubConnStr, pubSubHub)
 
-let handler = new WebPubSubEventHandler(HUB, ['*'], {
+let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
   path: '/api/event',
 
   //
@@ -56,8 +56,8 @@ let handler = new WebPubSubEventHandler(HUB, ['*'], {
   //
   //
   handleUserEvent: async (req, res) => {
+    console.log(req)
     if (req.context.eventName === 'createChat') {
-      //console.log(req)
       const chatName = req.data.name
       const chatId = req.data.id
       const chat = { id: chatId, name: chatName, members: {} }
@@ -87,7 +87,7 @@ let handler = new WebPubSubEventHandler(HUB, ['*'], {
       console.log(`### User ${userId} has joined chat ${chatName}`)
 
       setTimeout(() => {
-        serviceClient.group(chatId).sendToAll(`💬 <b>${userId}</b> has joined the chat!`)
+        serviceClient.group(chatId).sendToAll(`💬 <b>${userId}</b> has joined the chat`)
       }, 1000)
     }
 
@@ -117,6 +117,7 @@ async function leaveChat(userId, chatId) {
   for (let memberUserId in chat.members) {
     if (memberUserId === userId) {
       delete chat.members[userId]
+      serviceClient.group(chatId).sendToAll(`💨 <b>${userId}</b> has left the chat`)
     }
   }
 

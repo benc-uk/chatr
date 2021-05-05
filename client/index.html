@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChatApp</title>
+    <title>Chatr App</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
@@ -23,7 +23,7 @@
   <body>
     <!-- Main app -->
     <section class="section" id="app">
-      <div class="columns">
+      <div class="columns" v-if="user">
         <!-- <div class="column">
           <div class="title is-4">Chat Tools</div>
         </div> -->
@@ -31,12 +31,7 @@
         <div class="column">
           <div class="title is-4">
             Group Chats
-            <button @click="newChat()" class="button is-primary is-pulled-right">
-              <span class="icon">
-                <i class="fas fa-home"></i>
-              </span>
-              🧔 New Group Chat
-            </button>
+            <button @click="newChat()" class="button is-primary is-pulled-right">🧔 New Group Chat</button>
           </div>
 
           <aside class="menu chatMenu box">
@@ -49,7 +44,12 @@
         </div>
 
         <div class="column">
-          <div class="title is-4">Online Users</div>
+          <div class="title is-4">
+            Online Users
+            <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-primary is-pulled-right" v-if="isAzureStaticWebApp"
+              >🚪 Logout</a
+            >
+          </div>
 
           <aside class="menu chatMenu box">
             <ul class="menu-list">
