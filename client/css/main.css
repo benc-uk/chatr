@@ -17,3 +17,7 @@
 .chatComponent {
   padding-top: 0.5rem;
 }
+
+footer {
+  float: right;
+}

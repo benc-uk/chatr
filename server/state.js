@@ -62,7 +62,10 @@ async function getChat(id) {
 
 async function listChats() {
   let chatsResp = {}
-  for (const chat of await chatTableClient.listEntities()) {
+  let chatList = await chatTableClient.listEntities()
+  if (!chatList) return {}
+
+  for (const chat of chatList) {
     chatsResp[chat.rowKey] = JSON.parse(chat.data)
   }
   return chatsResp
@@ -87,7 +90,9 @@ async function removeUser(id) {
 
 async function listUsers() {
   let usersResp = {}
-  for await (const user of userTableClient.listEntities()) {
+  let userList = await userTableClient.listEntities()
+  if (!userList) return {}
+  for await (const user of userList) {
     usersResp[user.rowKey] = user
   }
   return usersResp
