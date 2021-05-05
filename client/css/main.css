@@ -1,14 +1,19 @@
-.chatInput {
-  width: 100%;
-  font-size: 1.4rem;
-}
-
 .chatBox {
   width: 100%;
-  height: 70vh;
+  height: 55vh;
   margin-top: 1rem;
   background-color: #eeeeee;
   font-size: 1.1rem;
-  line-height: 1.7rem;
   padding: 0.5rem;
+  overflow-y: scroll;
+}
+
+.chatMenu {
+  height: 20vh;
+  max-height: 20vh;
+  overflow-y: scroll;
+}
+
+.chatComponent {
+  padding-top: 0.5rem;
 }

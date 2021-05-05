@@ -9,26 +9,21 @@ export default Vue.component('chat', {
   },
 
   props: {
-    group: String,
+    name: String,
+    id: String,
     active: Boolean,
+    user: String,
   },
 
   async mounted() {
-    let res = await fetch(`${API_ENDPOINT}/api/getToken?userid=DaveDemo`)
+    let res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
     let token = await res.json()
-    this.appendChat(`💡 Connecting...`)
+    this.appendChat(`📡 Connecting...`)
 
     this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
-    this.ws.onopen = () => {
-      this.ws.send(
-        JSON.stringify({
-          type: 'joinGroup',
-          group: this.group,
-        })
-      )
-    }
 
     this.ws.onmessage = (evt) => {
+      //console.dir(evt.data)
       let msg = JSON.parse(evt.data)
       switch (msg.type) {
         case 'system': {
@@ -43,6 +38,12 @@ export default Vue.component('chat', {
         }
 
         case 'message': {
+          // Pretty important otherwise we show messages from all chats !
+          if (msg.group !== this.id) break
+          if (msg.data.message && msg.data.user) {
+            this.appendChat(`<b>${msg.data.user}:</b> ${msg.data.message}`)
+            break
+          }
           this.appendChat(msg.data)
           break
         }
@@ -52,39 +53,44 @@ export default Vue.component('chat', {
 
   methods: {
     appendChat(text) {
-      this.chatText += `${text}\n`
+      this.chatText += `${text}<br/>`
+
+      Vue.nextTick(() => {
+        if (this.$refs['chatBox']) {
+          this.$refs['chatBox'].scrollTop = this.$refs['chatBox'].scrollHeight
+        }
+      })
+
+      if (!this.active) this.$emit('unread', this.id)
     },
 
     sendMessage() {
+      if (!this.message) return
       this.ws.send(
         JSON.stringify({
           type: 'sendToGroup',
-          group: this.group,
-          dataType: 'text',
-          data: this.message,
+          group: this.id,
+          dataType: 'json',
+          data: {
+            message: this.message,
+            user: this.user,
+          },
         })
       )
       this.message = ''
     },
-
-    testMessage() {
-      this.ws.send(
-        JSON.stringify({
-          type: 'event',
-          event: 'newChat',
-          dataType: 'text',
-          data: 'test message hello',
-        })
-      )
-    },
   },
 
   template: `
-  <div class="container" v-show="active">
-  
-    <button @click="testMessage()" class="button is-primary">SEND TO SERVER</button>
+  <div class="container chatComponent" v-show="active">
+    <div class="is-flex">
+      <input class="chatInput input" v-on:keyup.enter="sendMessage" v-show="connected" placeholder="What do you want to say?" v-model="message"></input>
+      &nbsp;
+      <button class="button is-success" @click="sendMessage">Send 📧</button>
+      &nbsp;&nbsp;&nbsp;
+      <button class="button is-warning" @click="$emit('leave', id)">Leave ❌</button>
+    </div>
 
-    <input class="chatInput" v-on:keyup.enter="sendMessage" v-show="connected" placeholder="What do you want to say?" v-model="message"></input>
-    <textarea class="chatBox" readonly>{{ chatText }}</textarea> 
+    <div class="chatBox" contentEditable="false" readonly v-html="chatText" ref="chatBox"></div> 
   </div>`,
 })

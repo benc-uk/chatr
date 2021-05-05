@@ -1,0 +1,13 @@
+{
+  "disabled": false,
+  "bindings": [
+    {
+      "type": "webPubSubTrigger",
+      "direction": "in",
+      "name": "message",
+      "hub": "chat",
+      "eventName": "newChat",
+      "eventType": "user"
+    }
+  ]
+}

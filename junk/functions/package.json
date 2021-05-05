@@ -1,0 +1,10 @@
+{
+  "name": "chatr-api",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "start": "func start"
+  },
+  "author": "Ben Coleman",
+  "license": "MIT"
+}

@@ -7,6 +7,7 @@
     <title>ChatApp</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
     <link rel="stylesheet" href="css/main.css" />
 
@@ -22,21 +23,74 @@
   <body>
     <!-- Main app -->
     <section class="section" id="app">
+      <div class="columns">
+        <!-- <div class="column">
+          <div class="title is-4">Chat Tools</div>
+        </div> -->
+
+        <div class="column">
+          <div class="title is-4">
+            Group Chats
+            <button @click="newChat()" class="button is-primary is-pulled-right">
+              <span class="icon">
+                <i class="fas fa-home"></i>
+              </span>
+              🧔 New Group Chat
+            </button>
+          </div>
+
+          <aside class="menu chatMenu box">
+            <ul class="menu-list">
+              <li v-for="(chat, chatId) in allChats" @click="joinChat(chatId, chat.name)">
+                <a class="animate__animated animate__bounceIn">{{ chat.name }}</a>
+              </li>
+            </ul>
+          </aside>
+        </div>
+
+        <div class="column">
+          <div class="title is-4">Online Users</div>
+
+          <aside class="menu chatMenu box">
+            <ul class="menu-list">
+              <li v-for="(user, userName) in allUsers" @click="startPrivateChat(userName)">
+                <a class="animate__animated animate__bounceIn">{{ userName }}</a>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+
       <div class="container">
-        <button @click="addChat()" class="button is-primary is-large">Add Chat</button>
-
-        <hr />
-
-        <div class="tabs is-toggle is-fullwidth">
+        <div class="tabs is-boxed">
           <ul>
-            <li v-for="chat in chats" :class="{ 'is-active': chat.active }">
-              <a @click="switchChat" :data-chat-name="chat.name">💬 {{ chat.name }}</a>
+            <li v-for="(chat, chatId) in joinedChats" :class="{ 'is-active': chat.active }">
+              <a @click="switchChat" :data-chat-id="chat.id">
+                {{ chat.name }}
+                <span
+                  @click="switchChat"
+                  :data-chat-id="chat.id"
+                  class="animate__heartBeat animate__animated animate__infinite"
+                  v-if="chat.unreadCount"
+                >
+                  &nbsp;&nbsp;💬
+                </span>
+              </a>
             </li>
           </ul>
         </div>
       </div>
 
-      <chat v-for="(chat, index) in chats" :key="index" :group="chat.name" :active="chat.active"></chat>
+      <chat
+        v-for="(chat, chatId) in joinedChats"
+        :key="chatId"
+        :id="chatId"
+        :name="chat.name"
+        :active="chat.active"
+        :user="user"
+        @unread="onUnreadEvent"
+        @leave="onLeaveEvent"
+      ></chat>
     </section>
   </body>
 </html>
