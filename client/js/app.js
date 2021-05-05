@@ -17,6 +17,7 @@ new Vue({
       // Map of chat id to server chat objects, synced with the server
       allUsers: {},
       isAzureStaticWebApp: false,
+      count: 0,
     }
   },
 
@@ -54,9 +55,8 @@ new Vue({
 
     // Handle messages from server
     this.ws.onmessage = (evt) => {
+      //console.dir(evt)
       let msg = JSON.parse(evt.data)
-      // console.log('============= onmessage app.js')
-      // console.log(msg)
 
       // Server events
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
@@ -74,6 +74,10 @@ new Vue({
       if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
         let userName = msg.data.data
         this.$delete(this.allUsers, userName)
+      }
+      if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
+        let chat = JSON.parse(msg.data.data)
+        this.joinPrivateChat(chat.id, chat.name)
       }
     }
   },
@@ -96,6 +100,23 @@ new Vue({
       this.joinChat(chatId, chatName)
     },
 
+    async newPrivateChat(targetUser) {
+      if (targetUser == this.user) return
+      const openPrivateChats = Object.keys(this.joinedChats).filter((c) => c.startsWith('private_'))
+      if (openPrivateChats.length > 0) {
+        if (openPrivateChats.find((c) => c.includes(targetUser))) return
+      }
+
+      this.ws.send(
+        JSON.stringify({
+          type: 'event',
+          event: 'createPrivateChat',
+          dataType: 'json',
+          data: { initiatorUserId: this.user, targetUserId: targetUser },
+        })
+      )
+    },
+
     async joinChat(chatId, chatName = null) {
       // Skip if we are already joined
       if (this.joinedChats[chatId]) return
@@ -113,6 +134,13 @@ new Vue({
           data: chatId,
         })
       )
+    },
+
+    joinPrivateChat(chatId, chatName) {
+      // Skip if we are already joined
+      if (this.joinedChats[chatId]) return
+      //this.deactivateChats()
+      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: false, unreadCount: 0 })
     },
 
     switchChat(evt) {
@@ -134,6 +162,7 @@ new Vue({
     },
 
     onLeaveEvent(chatId) {
+      console.log('LEAVING', chatId)
       this.$delete(this.joinedChats, chatId)
       this.ws.send(
         JSON.stringify({

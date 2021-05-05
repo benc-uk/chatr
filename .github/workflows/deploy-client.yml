@@ -3,7 +3,10 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - main
+      - 'main'
+    paths:
+      - 'client/**'
+      - '.github/workflows/deploy-client.yaml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:

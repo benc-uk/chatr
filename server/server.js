@@ -5,11 +5,10 @@ const pubSubHandler = require('./pubsub').handler
 const cors = require('cors')
 const app = express()
 
-// Important when we're accessed via a tunnel
-
 // Plugin the event handler routes
 app.use(pubSubHandler.getMiddleware())
 
+// Important when we're accessed via a tunnel
 app.use(cors())
 
 // REST API for some tasks

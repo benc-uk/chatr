@@ -1,0 +1,1 @@
+param resourceGroup string = "ss"

@@ -24,10 +24,6 @@
     <!-- Main app -->
     <section class="section" id="app">
       <div class="columns" v-if="user">
-        <!-- <div class="column">
-          <div class="title is-4">Chat Tools</div>
-        </div> -->
-
         <div class="column">
           <div class="title is-4">
             Group Chats
@@ -53,8 +49,11 @@
 
           <aside class="menu chatMenu box">
             <ul class="menu-list">
-              <li v-for="(user, userName) in allUsers" @click="startPrivateChat(userName)">
-                <a class="animate__animated animate__bounceIn">{{ userName }}</a>
+              <li v-for="(onlineUser, userName) in allUsers" @click="newPrivateChat(userName)">
+                <a class="animate__animated animate__bounceIn">
+                  {{ userName }}
+                  <span v-if="userName == user">👩</span>
+                </a>
               </li>
             </ul>
           </aside>
