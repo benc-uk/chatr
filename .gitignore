@@ -1,3 +1,4 @@
 .env
 local.settings.json
 node_modules
+notes.md

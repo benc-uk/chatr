@@ -10,7 +10,7 @@ AZURE_REGION ?= westeurope
 # Don't change
 SRC_DIR := server
 
-.PHONY: help image push run
+.PHONY: help image push run watch
 .DEFAULT_GOAL := help
 
 help:  ## 💬 This help message
@@ -23,7 +23,7 @@ lint-fix: $(SRC_DIR)/node_modules  ## 📜 Lint & format, will try to fix errors
 	cd $(SRC_DIR); npm run lint-fix
 
 image:  ## 🔨 Build container image from Dockerfile 
-	docker build . --file build/Dockerfile \
+	docker build $(SRC_DIR) --file build/Dockerfile \
 	--tag $(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
 
 push:  ## 📤 Push container image to registry 
@@ -32,7 +32,7 @@ push:  ## 📤 Push container image to registry
 run: $(SRC_DIR)/node_modules  ## 🏃 Run locally using Node.js
 	cd $(SRC_DIR); npm start
 
-run: $(SRC_DIR)/node_modules  ## 🏃 Watch & hot reload locally using nodemon
+watch: $(SRC_DIR)/node_modules  ## 👀 Watch & hot reload locally using nodemon
 	cd $(SRC_DIR); nodemon server.js
 
 
