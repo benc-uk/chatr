@@ -1,1 +1,1 @@
-const API_ENDPOINT = 'https://chatr.loophole.site'
+const API_ENDPOINT = 'http://20.56.193.47:3000'
