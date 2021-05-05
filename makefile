@@ -32,6 +32,10 @@ push:  ## 📤 Push container image to registry
 run: $(SRC_DIR)/node_modules  ## 🏃 Run locally using Node.js
 	cd $(SRC_DIR); npm start
 
+run: $(SRC_DIR)/node_modules  ## 🏃 Watch & hot reload locally using nodemon
+	cd $(SRC_DIR); nodemon server.js
+
+
 clean:  ## 🧹 Clean up project
 	rm -rf $(SRC_DIR)/node_modules
 
