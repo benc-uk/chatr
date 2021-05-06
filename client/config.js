@@ -1,1 +1,9 @@
-const API_ENDPOINT = 'http://20.56.193.47:3000'
+let API_ENDPOINT = ''
+
+;(async () => {
+  let res = await fetch('/api/getEndpoint')
+  if (res.ok) {
+    let data = await res.json()
+    API_ENDPOINT = data.API_ENDPOINT
+  }
+})()

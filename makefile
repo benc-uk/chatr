@@ -3,14 +3,15 @@ IMAGE_REG ?= ghcr.io
 IMAGE_REPO ?= benc-uk/chatr/server
 IMAGE_TAG ?= latest
 
-# Used by `deploy` target, sets Azure webap defaults, override as required
-AZURE_RES_GROUP ?= chatr
+# Used by `deploy` target
 AZURE_REGION ?= westeurope
+GITHUB_REPO ?= $(shell git remote get-url origin)
+GITHUB_TOKEN ?= CHANGEME
 
 # Don't change
 SRC_DIR := server
 
-.PHONY: help image push run watch
+.PHONY: help image push run watch deploy
 .DEFAULT_GOAL := help
 
 help:  ## 💬 This help message
@@ -35,9 +36,21 @@ run: $(SRC_DIR)/node_modules  ## 🏃 Run locally using Node.js
 watch: $(SRC_DIR)/node_modules  ## 👀 Watch & hot reload locally using nodemon
 	cd $(SRC_DIR); nodemon server.js
 
-
 clean:  ## 🧹 Clean up project
 	rm -rf $(SRC_DIR)/node_modules
+
+deploy:  ## 🚀 Deploy everything to Azure using Bicep
+ifeq ($(GITHUB_REPO),https://github.com/benc-uk/chatr.git)
+	@echo "⛔ Warning! You should be running from a fork of this repo, not a clone!"
+	@bash -c 'read -n 1 -s -r -p "Press any key to continue, or ctrl+c to exit..."'
+	@echo ""
+endif
+	@test -f deploy/local.params.json || ( echo "💥 Error! File 'local.params.json' not found in deploy folder!"; exit 1 )
+	@az deployment sub create \
+	--template-file deploy/main.bicep \
+	--location $(AZURE_REGION) \
+	--parameters @deploy/local.params.json \
+	--parameters githubRepo=$(GITHUB_REPO) githubToken="$(GITHUB_TOKEN)"
 
 # ============================================================================
 

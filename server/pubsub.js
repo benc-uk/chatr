@@ -16,7 +16,7 @@ const serviceClient = new WebPubSubServiceClient(pubSubConnStr, pubSubHub)
 console.log(`### Connected to Azure web pubsub: ${pubSubConnStr.split(';')[0]} using hub: ${pubSubHub}`)
 
 let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
-  path: '/api/event',
+  path: '/pubsub/events',
 
   //
   //

@@ -1,4 +1,5 @@
 .env
 local.settings.json
+local.params.json
 node_modules
 notes.md

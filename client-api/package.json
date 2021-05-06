@@ -1,0 +1,9 @@
+{
+  "name": "static-app-api",
+  "version": "",
+  "description": "",
+  "scripts": {
+    "test": "echo \"No tests yet...\""
+  },
+  "author": "Ben Coleman"
+}
