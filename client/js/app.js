@@ -17,7 +17,8 @@ new Vue({
       // Map of chat id to server chat objects, synced with the server
       allUsers: {},
       isAzureStaticWebApp: false,
-      count: 0,
+      openNewChatDialog: false,
+      newChatName: '',
     }
   },
 
@@ -25,7 +26,7 @@ new Vue({
     // Get user details
     let userRes = await fetch(`/.auth/me`)
     if (!userRes.ok) {
-      // Todo replace with prompt or get from auth system
+      // When auth endpoint not available, like when local, fallback to a prompt :)
       const userName = prompt('What is your name')
       if (!userName) window.location.href = window.location.href
       this.user = userName
@@ -34,7 +35,7 @@ new Vue({
       this.user = data.clientPrincipal.userDetails
       this.isAzureStaticWebApp = true
     }
-    console.log('### USER IS:', this.user)
+    console.log('### User id:', this.user)
 
     // Get all existing chats from server
     let res = await fetch(`${API_ENDPOINT}/api/chats`)
@@ -55,7 +56,6 @@ new Vue({
 
     // Handle messages from server
     this.ws.onmessage = (evt) => {
-      //console.dir(evt)
       let msg = JSON.parse(evt.data)
 
       // Server events
@@ -84,20 +84,10 @@ new Vue({
 
   methods: {
     async newChat() {
-      let chatName = prompt('Name this new chat') //`chat ${Math.floor(Math.random() * 50)}`#
-      if (!chatName) return
-
-      const chatId = utils.uuidv4()
-      this.ws.send(
-        JSON.stringify({
-          type: 'event',
-          event: 'createChat',
-          dataType: 'json',
-          data: { name: chatName, id: chatId },
-        })
-      )
-      this.deactivateChats()
-      this.joinChat(chatId, chatName)
+      this.openNewChatDialog = true
+      this.$nextTick(() => {
+        this.$refs.newChatInput.focus()
+      })
     },
 
     async newPrivateChat(targetUser) {
@@ -176,6 +166,30 @@ new Vue({
       if (firstChat) {
         firstChat.active = true
       }
+    },
+
+    newChatCreate() {
+      this.openNewChatDialog = false
+      const chatName = this.newChatName
+      if (!chatName) return
+
+      const chatId = utils.uuidv4()
+      this.ws.send(
+        JSON.stringify({
+          type: 'event',
+          event: 'createChat',
+          dataType: 'json',
+          data: { name: chatName, id: chatId },
+        })
+      )
+      this.newChatName = ''
+      this.deactivateChats()
+      this.joinChat(chatId, chatName)
+    },
+
+    newChatCancel() {
+      this.openNewChatDialog = false
+      this.newChatName = ''
     },
   },
 })

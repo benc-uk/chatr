@@ -49,14 +49,14 @@ endif
 ifeq ($(GITHUB_REPO),https://github.com/benc-uk/chatr.git)
 	@echo "⛔ Warning! You should be running from a fork of this repo, not a clone!"
 	@bash -c 'read -n 1 -s -r -p "Press any key to continue, or ctrl+c to exit..."'
-	@echo "🚀 Starting deployment..."
+	@echo "\n\n🚀 Starting deployment...\n"
 endif
 	@az deployment sub create \
 	--template-file deploy/main.bicep \
 	--location $(AZURE_REGION) \
 	--parameters githubRepo=$(GITHUB_REPO) githubToken="$(GITHUB_TOKEN)" resPrefix=$(AZURE_PREFIX) resGroupName=$(AZURE_RESGRP) location=$(AZURE_REGION)
-	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names \"API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io\"\n"
-	@echo "🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query "properties.outputs.appUrl.value")"
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io"
+	@echo "🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query 'properties.outputs.appUrl.value')"
 
 # ============================================================================
 
