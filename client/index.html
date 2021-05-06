@@ -24,6 +24,7 @@
   <body>
     <!-- Main app -->
     <section class="section" id="app">
+      <div class="notification is-danger" v-if="error">{{ error }}</div>
       <div class="columns" v-if="user">
 
         <!-- box for group chats -->

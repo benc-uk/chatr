@@ -5,6 +5,8 @@ import { getApiEndpoint } from './config.js'
 let API_ENDPOINT
 
 async function startApp() {
+  // Has to be wrapped in an async function, can't use a Vue lifecycle hook
+  // If we don't do this we get a race condition and the app might start before we have the API endpoint
   API_ENDPOINT = await getApiEndpoint()
 
   new Vue({
@@ -29,6 +31,8 @@ async function startApp() {
         // Used by the modal dialog
         openNewChatDialog: false,
         newChatName: '',
+
+        error: '',
       }
     },
 
@@ -47,22 +51,26 @@ async function startApp() {
       }
       console.log('### User id:', this.user)
 
-      // Get all existing chats from server
-      let res = await fetch(`${API_ENDPOINT}/api/chats`)
-      let data = await res.json()
-      this.allChats = data.chats
+      try {
+        // Get all existing chats from server
+        let res = await fetch(`${API_ENDPOINT}/api/chats`)
+        let data = await res.json()
+        this.allChats = data.chats
 
-      // Get all existing users from server
-      res = await fetch(`${API_ENDPOINT}/api/users`)
-      data = await res.json()
-      this.allUsers = data.users
+        // Get all existing users from server
+        res = await fetch(`${API_ENDPOINT}/api/users`)
+        data = await res.json()
+        this.allUsers = data.users
 
-      // Get URL & token to connect to Azure Web Pubsub
-      res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
-      let token = await res.json()
+        // Get URL & token to connect to Azure Web Pubsub
+        res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
+        let token = await res.json()
 
-      // Now connect to Azure Web PubSub
-      this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
+        // Now connect to Azure Web PubSub
+        this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
+      } catch (err) {
+        this.error = `💩 Failed to get data from the server (API_ENDPOINT='${API_ENDPOINT}'), it could be down. You could try refreshing the page 🤷‍♂️`
+      }
 
       // Handle messages from server
       this.ws.onmessage = (evt) => {
