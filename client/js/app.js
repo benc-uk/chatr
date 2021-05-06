@@ -2,7 +2,7 @@ import chat from './components/chat.js'
 import utils from './utils.js'
 import { getApiEndpoint } from './config.js'
 
-let API_ENDPOINT
+export let API_ENDPOINT
 
 async function startApp() {
   // Has to be wrapped in an async function, can't use a Vue lifecycle hook

@@ -1,3 +1,5 @@
+import { API_ENDPOINT } from '../app.js'
+
 export default Vue.component('chat', {
   data() {
     return {
