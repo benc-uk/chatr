@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 
     <link rel="stylesheet" href="css/main.css" />
 
@@ -27,7 +28,7 @@
         <div class="column">
           <div class="title is-4">
             Group Chats
-            <button @click="newChat()" class="button is-primary is-pulled-right">🧔 New Group Chat</button>
+            <button @click="newChat()" class="button is-info is-pulled-right"><i class="fas fa-comment-dots"></i>&nbsp; New Chat</button>
           </div>
 
           <aside class="menu chatMenu box">
@@ -42,17 +43,16 @@
         <div class="column">
           <div class="title is-4">
             Online Users
-            <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-primary is-pulled-right" v-if="isAzureStaticWebApp"
-              >🚪 Logout</a
-            >
+            <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right" v-if="true">
+              <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
+            </a>
           </div>
 
           <aside class="menu chatMenu box">
             <ul class="menu-list">
               <li v-for="(onlineUser, userName) in allUsers" @click="newPrivateChat(userName)">
                 <a class="animate__animated animate__bounceIn">
-                  {{ userName }}
-                  <span v-if="userName == user">👩</span>
+                  <span v-if="userName == user"><i class="fas fa-user"></i>&nbsp;</span>{{ userName }}
                 </a>
               </li>
             </ul>
@@ -92,6 +92,6 @@
       ></chat>
     </section>
 
-    <footer>Chatr v0.0.1, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.2, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>

@@ -86,9 +86,9 @@ export default Vue.component('chat', {
     <div class="is-flex">
       <input class="chatInput input" v-on:keyup.enter="sendMessage" v-show="connected" placeholder="What do you want to say?" v-model="message"></input>
       &nbsp;
-      <button class="button is-success" @click="sendMessage">Send 📧</button>
+      <button class="button is-success" @click="sendMessage"><i class="fas fa-share"></i><span class="is-hidden-mobile">&nbsp; Send</span></button>
       &nbsp;&nbsp;&nbsp;
-      <button class="button is-warning" @click="$emit('leave', id)">Leave ❌</button>
+      <button class="button is-warning" @click="$emit('leave', id)"><i class="far fa-times-circle"></i><span class="is-hidden-mobile">&nbsp; Leave</span></button>
     </div>
 
     <div class="chatBox" contentEditable="false" readonly v-html="chatText" ref="chatBox"></div> 

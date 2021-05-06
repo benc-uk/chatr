@@ -4,9 +4,11 @@ IMAGE_REPO ?= benc-uk/chatr/server
 IMAGE_TAG ?= latest
 
 # Used by `deploy` target
+AZURE_PREFIX ?= chatr
+AZURE_RESGRP ?= chatr
 AZURE_REGION ?= westeurope
 GITHUB_REPO ?= $(shell git remote get-url origin)
-GITHUB_TOKEN ?= CHANGEME
+GITHUB_TOKEN ?= ""
 
 # Don't change
 SRC_DIR := server
@@ -40,17 +42,21 @@ clean:  ## 🧹 Clean up project
 	rm -rf $(SRC_DIR)/node_modules
 
 deploy:  ## 🚀 Deploy everything to Azure using Bicep
+ifeq ($(GITHUB_TOKEN),"")
+	@echo "💥 Variable GITHUB_TOKEN was not set, can not continue"
+	exit 1
+endif
 ifeq ($(GITHUB_REPO),https://github.com/benc-uk/chatr.git)
 	@echo "⛔ Warning! You should be running from a fork of this repo, not a clone!"
 	@bash -c 'read -n 1 -s -r -p "Press any key to continue, or ctrl+c to exit..."'
-	@echo ""
+	@echo "🚀 Starting deployment..."
 endif
-	@test -f deploy/local.params.json || ( echo "💥 Error! File 'local.params.json' not found in deploy folder!"; exit 1 )
 	@az deployment sub create \
 	--template-file deploy/main.bicep \
 	--location $(AZURE_REGION) \
-	--parameters @deploy/local.params.json \
-	--parameters githubRepo=$(GITHUB_REPO) githubToken="$(GITHUB_TOKEN)"
+	--parameters githubRepo=$(GITHUB_REPO) githubToken="$(GITHUB_TOKEN)" resPrefix=$(AZURE_PREFIX) resGroupName=$(AZURE_RESGRP) location=$(AZURE_REGION)
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names \"API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io\"\n"
+	@echo "🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query "properties.outputs.appUrl.value")"
 
 # ============================================================================
 

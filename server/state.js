@@ -16,6 +16,8 @@ const serviceClient = new TableServiceClient(`https://${account}.table.core.wind
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)
 
+console.log(account)
+
 async function initTables() {
   console.log(`### Connected to Azure table storage: ${account}`)
 

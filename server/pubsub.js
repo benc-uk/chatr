@@ -134,11 +134,11 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
 
       await serviceClient.sendToUser(initiator, {
         chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${target}` }),
+        data: JSON.stringify({ id: chatId, name: `A chat with ${target}`, grabFocus: true }),
       })
       await serviceClient.sendToUser(target, {
         chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${initiator}` }),
+        data: JSON.stringify({ id: chatId, name: `A chat with ${initiator}`, grabFocus: false }),
       })
 
       setTimeout(async () => {

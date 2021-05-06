@@ -1,6 +1,6 @@
+param name string = 'chatrs-server'
 param location string = 'westeurope'
-param containerName string = 'chatrsrv2'
-param dnsPrefix string = 'chatrsrv2'
+param dnsPrefix string = 'chatr-server'
 param serverImage string = 'ghcr.io/benc-uk/chatr/server:latest'
 
 param pubsubConnString string
@@ -12,7 +12,7 @@ var caddyImage = 'caddy:latest'
 
 resource serverContainer 'Microsoft.ContainerInstance/containerGroups@2021-03-01' = {
   location: location
-  name: containerName
+  name: name
 
   properties: {
     osType: 'Linux'

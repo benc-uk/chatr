@@ -1,6 +1,6 @@
 targetScope = 'subscription'
 
-param resSuffix string = 'chatr'
+param resPrefix string = 'chatr'
 param resGroupName string = 'chatr'
 param location string = 'westeurope'
 param serverImage string = 'ghcr.io/benc-uk/chatr/server:latest'
@@ -10,7 +10,7 @@ param githubRepo string
 @secure()
 param githubToken string
 
-var storageName = '${resSuffix}store'
+var storageName = '${resPrefix}store'
 var shareName = 'caddydata'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-01-01' = {
@@ -20,47 +20,49 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-01-01' = {
 
 module staticApp 'modules/static-webapp.bicep' = {
   scope: resGroup
-  name: resSuffix
-  params:{
+  name: 'staticApp'
+  params: {
+    name: resPrefix
+    location: location
     repoToken: githubToken
     repoUrl: replace(githubRepo, '.git', '')
   }
 }
 
-// module storage 'modules/storage.bicep' = {
-//   scope: resGroup
-//   name: 'storage'
-//   params: {
-//     location: location
-//     name: storageName
-//     shareName: shareName
-//   }
-// }
+module storage 'modules/storage.bicep' = {
+  scope: resGroup
+  name: 'storage'
+  params: {
+    name: storageName
+    location: location
+    shareName: shareName
+  }
+}
 
-// module pubsub 'modules/pubsub.bicep' = {
-//   scope: resGroup
-//   name: 'pubsub'
-//   params: {
-//     location: location
-//     name: resSuffix
-//     eventHandlerUrl: 'https://${resSuffix}.${location}.azurecontainer.io/pubsub/events'
-//   }
-// }
+module pubsub 'modules/pubsub.bicep' = {
+  scope: resGroup
+  name: 'pubsub'
+  params: {
+    name: resPrefix
+    location: location
+    eventHandlerUrl: 'https://${resPrefix}.${location}.azurecontainer.io/pubsub/events'
+  }
+}
 
-// module network 'modules/server.bicep' = {
-//   scope: resGroup
-//   name: 'server'
-//   params: {
-//     location: location
-//     containerName: resSuffix
-//     dnsPrefix: resSuffix
+module network 'modules/server.bicep' = {
+  scope: resGroup
+  name: 'server'
+  params: {
+    name: resPrefix
+    dnsPrefix: resPrefix
+    location: location
     
-//     storageAccount: storageName
-//     storageKey: storage.outputs.key
-//     storageShare: shareName
+    storageAccount: storageName
+    storageKey: storage.outputs.key
+    storageShare: shareName
 
-//     pubsubConnString: 'Endpoint=https://${resSuffix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
-//   }
-// }
+    pubsubConnString: 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
+  }
+}
 
-output appUrl string = staticApp.outputs.appHostname
+output appUrl string = 'https://${staticApp.outputs.appHostname}'

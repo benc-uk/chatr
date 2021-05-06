@@ -77,7 +77,7 @@ new Vue({
       }
       if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
         let chat = JSON.parse(msg.data.data)
-        this.joinPrivateChat(chat.id, chat.name)
+        this.joinPrivateChat(chat.id, chat.name, chat.grabFocus)
       }
     }
   },
@@ -136,11 +136,10 @@ new Vue({
       )
     },
 
-    joinPrivateChat(chatId, chatName) {
+    joinPrivateChat(chatId, chatName, grabFocus) {
       // Skip if we are already joined
       if (this.joinedChats[chatId]) return
-      //this.deactivateChats()
-      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: false, unreadCount: 0 })
+      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 })
     },
 
     switchChat(evt) {

@@ -1,6 +1,6 @@
 {
   "name": "chatr-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Server and backend API for chatr application",
   "main": "server.js",
   "scripts": {
