@@ -27,7 +27,6 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
     state.upsertUser(userId, { status: 'online' })
 
     // Notify everyone
-
     await serviceClient.sendToAll({
       chatEvent: 'userOnline',
       data: userId,
@@ -129,17 +128,37 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
         chatId = `private_${initiator}_${target}`
       }
 
-      await serviceClient.group(chatId).addUser(target)
-      await serviceClient.group(chatId).addUser(initiator)
+      try {
+        await serviceClient.group(chatId).addUser(target)
 
-      await serviceClient.sendToUser(initiator, {
-        chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${target}`, grabFocus: true }),
-      })
-      await serviceClient.sendToUser(target, {
-        chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${initiator}`, grabFocus: false }),
-      })
+        await serviceClient.sendToUser(target, {
+          chatEvent: 'joinPrivateChat',
+          data: JSON.stringify({ id: chatId, name: `A chat with ${initiator}`, grabFocus: false }),
+        })
+      } catch (err) {
+        // This can happen with orphaned disconnected users
+        console.log(`### Target user for private chat not found, will remove them!`)
+        state.removeUser(target)
+        serviceClient.sendToAll({ chatEvent: 'userOffline', data: target })
+        res.success()
+        return
+      }
+
+      try {
+        await serviceClient.group(chatId).addUser(initiator)
+
+        await serviceClient.sendToUser(initiator, {
+          chatEvent: 'joinPrivateChat',
+          data: JSON.stringify({ id: chatId, name: `A chat with ${target}`, grabFocus: true }),
+        })
+      } catch (err) {
+        // This can happen with orphaned disconnected users
+        console.log(`### Source user for private chat not found, will remove them!`)
+        state.removeUser(initiator)
+        serviceClient.sendToAll({ chatEvent: 'userOffline', data: initiator })
+        res.success()
+        return
+      }
 
       setTimeout(async () => {
         await serviceClient.group(chatId).sendToAll(`💬 ${initiator} wants to chat`)

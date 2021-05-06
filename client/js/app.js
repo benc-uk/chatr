@@ -1,5 +1,8 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
+import { getApiEndpoint } from './config.js'
+
+let API_ENDPOINT
 
 new Vue({
   el: '#app',
@@ -20,6 +23,10 @@ new Vue({
       openNewChatDialog: false,
       newChatName: '',
     }
+  },
+
+  async created() {
+    API_ENDPOINT = await getApiEndpoint()
   },
 
   async mounted() {

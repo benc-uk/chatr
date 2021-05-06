@@ -17,14 +17,16 @@
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.97em%22 font-size=%2280%22>💬</text></svg>"
     />
 
-    <script src="config.js"></script>
     <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
     <script type="module" src="js/app.js"></script>
   </head>
+
   <body>
     <!-- Main app -->
     <section class="section" id="app">
       <div class="columns" v-if="user">
+
+        <!-- box for group chats -->
         <div class="column">
           <div class="title is-4">
             Group Chats
@@ -40,6 +42,7 @@
           </aside>
         </div>
 
+        <!-- box for online users -->
         <div class="column">
           <div class="title is-4">
             Online Users
@@ -61,6 +64,7 @@
       </div>
 
       <div class="container">
+        <!-- One tab per joinedChats entry -->
         <div class="tabs is-boxed">
           <ul>
             <li v-for="(chat, chatId) in joinedChats" :class="{ 'is-active': chat.active }">
@@ -70,8 +74,7 @@
                   @click="switchChat"
                   :data-chat-id="chat.id"
                   class="animate__heartBeat animate__animated animate__infinite"
-                  v-if="chat.unreadCount"
-                >
+                  v-if="chat.unreadCount">
                   &nbsp;&nbsp;💬
                 </span>
               </a>
@@ -80,6 +83,7 @@
         </div>
       </div>
 
+      <!-- This is the magic that creates the child chat components, one for each joinedChats entry -->
       <chat
         v-for="(chat, chatId) in joinedChats"
         :key="chatId"
@@ -88,9 +92,10 @@
         :active="chat.active"
         :user="user"
         @unread="onUnreadEvent"
-        @leave="onLeaveEvent"
-      ></chat>
+        @leave="onLeaveEvent">
+      </chat>
 
+      <!-- new chat modal dialog -->
       <div class="modal" :class="{ 'is-active': openNewChatDialog }">
         <div class="modal-background"></div>
         <div class="modal-card">
@@ -106,6 +111,7 @@
           </footer>
         </div>
       </div>
+
     </section>
 
     <footer>Chatr v0.0.2, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
