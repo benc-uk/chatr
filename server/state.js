@@ -1,3 +1,9 @@
+//
+// Chatr - Server
+// State management and persistence backed with Azure Table storage
+// Ben Coleman, 2021
+//
+
 const { TableServiceClient, TablesSharedKeyCredential, TableClient } = require('@azure/data-tables')
 
 const account = process.env.STORAGE_ACCOUNT_NAME
@@ -7,7 +13,7 @@ const usersTable = 'users'
 const partitionKey = 'chatr'
 
 if (!account || !accountKey) {
-  console.log('### Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set, exiting now')
+  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set, exiting now')
   process.exit(2)
 }
 
@@ -19,17 +25,17 @@ const chatTableClient = new TableClient(`https://${account}.table.core.windows.n
 console.log(account)
 
 async function initTables() {
-  console.log(`### Connected to Azure table storage: ${account}`)
+  console.log(`### 📭 Connected to Azure table storage: ${account}`)
 
   try {
     await serviceClient.createTable(chatsTable)
   } catch (err) {
-    if (err.statusCode == 409) console.log(`### Table ${chatsTable} already exists, that's OK`)
+    if (err.statusCode == 409) console.log(`### 🆗 Table ${chatsTable} already exists, that's OK`)
   }
   try {
     await serviceClient.createTable(usersTable)
   } catch (err) {
-    if (err.statusCode == 409) console.log(`### Table ${usersTable} already exists, that's OK`)
+    if (err.statusCode == 409) console.log(`### 🆗 Table ${usersTable} already exists, that's OK`)
   }
 }
 

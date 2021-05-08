@@ -18,6 +18,9 @@
     />
 
     <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js"></script>
+
+    <!-- App stuff -->
     <script type="module" src="js/app.js"></script>
   </head>
 
@@ -47,7 +50,7 @@
         <div class="column">
           <div class="title is-4">
             Online Users
-            <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right" v-if="true">
+            <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right" v-if="isAzureStaticWebApp">
               <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
             </a>
           </div>
@@ -87,6 +90,7 @@
       <!-- This is the magic that creates the child chat components, one for each joinedChats entry -->
       <chat
         v-for="(chat, chatId) in joinedChats"
+        :ws="ws"
         :key="chatId"
         :id="chatId"
         :name="chat.name"
@@ -115,6 +119,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.3, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.4, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>

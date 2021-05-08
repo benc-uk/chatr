@@ -1,11 +1,8 @@
-import { API_ENDPOINT } from '../app.js'
-
 export default Vue.component('chat', {
   data() {
     return {
       chatText: '',
       message: '',
-      ws: null,
       connected: false,
     }
   },
@@ -15,30 +12,16 @@ export default Vue.component('chat', {
     id: String,
     active: Boolean,
     user: String,
+    // This is shared with the parent app component
+    ws: WebSocket,
   },
 
   async mounted() {
-    let res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
-    let token = await res.json()
-    this.appendChat(`📡 Connecting...`)
-
-    this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
-
-    this.ws.onmessage = (evt) => {
-      //console.dir(evt.data)
+    // Use addEventListener to not overwrite the existing listeners
+    this.ws.addEventListener('message', (evt) => {
       let msg = JSON.parse(evt.data)
-      switch (msg.type) {
-        case 'system': {
-          if (msg.event === 'connected') {
-            this.appendChat(`✨ Connected to ${evt.target.url.split('?')[0]}`)
-            this.connected = true
-          }
-          if (msg.event === 'disconnected') {
-            this.appendChat(`💥 Disconnected, reason was: ${msg.message}`)
-          }
-          break
-        }
 
+      switch (msg.type) {
         case 'message': {
           // Pretty important otherwise we show messages from all chats !
           if (msg.group !== this.id) break
@@ -50,6 +33,12 @@ export default Vue.component('chat', {
           break
         }
       }
+    })
+  },
+
+  updated() {
+    if (this.active) {
+      this.$refs.chatInput.focus()
     }
   },
 
@@ -86,9 +75,9 @@ export default Vue.component('chat', {
   template: `
   <div class="container chatComponent" v-show="active">
     <div class="is-flex">
-      <input class="chatInput input" v-on:keyup.enter="sendMessage" v-show="connected" placeholder="What do you want to say?" v-model="message"></input>
+      <input class="chatInput input" ref="chatInput" v-on:keyup.enter="sendMessage" v-show="ws && ws.readyState === 1" placeholder="What do you want to say?" v-model="message"></input>
       &nbsp;
-      <button class="button is-success" @click="sendMessage"><i class="fas fa-share"></i><span class="is-hidden-mobile">&nbsp; Send</span></button>
+      <button class="button is-success" @click="sendMessage" v-show="ws && ws.readyState === 1"><i class="fas fa-share"></i><span class="is-hidden-mobile">&nbsp; Send</span></button>
       &nbsp;&nbsp;&nbsp;
       <button class="button is-warning" @click="$emit('leave', id)"><i class="far fa-times-circle"></i><span class="is-hidden-mobile">&nbsp; Leave</span></button>
     </div>

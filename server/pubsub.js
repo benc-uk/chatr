@@ -1,25 +1,29 @@
+//
+// Chatr - Server
+// Handler for all Azure PubSub events, core app logic in here
+// Ben Coleman, 2021
+//
+
 const { WebPubSubServiceClient } = require('@azure/web-pubsub')
 const { WebPubSubEventHandler } = require('@azure/web-pubsub-express')
 
 const state = require('./state')
 
-let disconnectingUsers = {}
-
 const pubSubConnStr = process.env['PUBSUB_CONNECTION_STRING']
 const pubSubHub = process.env['HUB'] || 'chat'
 if (!pubSubConnStr) {
-  console.log('### Fatal! PUBSUB_CONNECTION_STRING is not set, exiting now')
+  console.log('### 💥 Fatal! PUBSUB_CONNECTION_STRING is not set, exiting now')
   process.exit(2)
 }
 
 const serviceClient = new WebPubSubServiceClient(pubSubConnStr, pubSubHub)
-console.log(`### Connected to Azure web pubsub: ${pubSubConnStr.split(';')[0]} using hub: ${pubSubHub}`)
+console.log(`### 💬 Connected to Azure web pubsub: ${pubSubConnStr.split(';')[0]} using hub: ${pubSubHub}`)
 
 let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
   path: '/pubsub/events',
 
   //
-  //
+  // Adds a new user, stores in state and notify everyone
   //
   onConnected: async (req) => {
     const userId = req.context.userId
@@ -34,34 +38,12 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
   },
 
   //
-  //
+  // When users leave, remove them and tidy up any chats there were in
   //
   onDisconnected: async (req) => {
     const userId = req.context.userId
-    // We get multiple disconnect events when a user closes the tab/window
-    // This lock object prevents multiple invocations
-    if (Object.keys(disconnectingUsers).includes(userId)) {
-      return
-    }
-    disconnectingUsers[userId] = 'BYE'
-
-    console.log(`### User ${userId} is disconnecting`)
-    state.removeUser(userId)
-
-    // Notify everyone
-    serviceClient.sendToAll({
-      chatEvent: 'userOffline',
-      data: userId,
-    })
-
-    // Leave all chats
-    for (let chatId in await state.listChats()) {
-      console.log('calling leaveChat', userId, chatId)
-      leaveChat(userId, chatId)
-    }
-
-    // Release the lock
-    delete disconnectingUsers[userId]
+    console.log(`### User ${userId} has disconnected`)
+    await removeUser(userId)
   },
 
   //
@@ -138,8 +120,7 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
       } catch (err) {
         // This can happen with orphaned disconnected users
         console.log(`### Target user for private chat not found, will remove them!`)
-        state.removeUser(target)
-        serviceClient.sendToAll({ chatEvent: 'userOffline', data: target })
+        await removeUser(target)
         res.success()
         return
       }
@@ -152,10 +133,9 @@ let handler = new WebPubSubEventHandler(pubSubHub, ['*'], {
           data: JSON.stringify({ id: chatId, name: `A chat with ${target}`, grabFocus: true }),
         })
       } catch (err) {
-        // This can happen with orphaned disconnected users
+        // This should never happen!
         console.log(`### Source user for private chat not found, will remove them!`)
-        state.removeUser(initiator)
-        serviceClient.sendToAll({ chatEvent: 'userOffline', data: initiator })
+        await removeUser(initiator)
         res.success()
         return
       }
@@ -198,6 +178,26 @@ async function leaveChat(userId, chatId) {
     await state.removeChat(chatId)
   } else {
     state.upsertChat(chatId, chat)
+  }
+}
+
+//
+// Helper to remove a user, syncs all users and the DB
+//
+async function removeUser(userId) {
+  console.log(`### User ${userId} is being removed`)
+  state.removeUser(userId)
+
+  // Notify everyone
+  serviceClient.sendToAll({
+    chatEvent: 'userOffline',
+    data: userId,
+  })
+
+  // Leave all chats
+  for (let chatId in await state.listChats()) {
+    console.log('### Calling leaveChat', userId, chatId)
+    await leaveChat(userId, chatId)
   }
 }
 

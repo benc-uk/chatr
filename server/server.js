@@ -1,3 +1,9 @@
+//
+// Chatr - Server
+// Main entry point and initializes the Express app + routes
+// Ben Coleman, 2021
+//
+
 require('dotenv').config()
 
 const express = require('express')
@@ -17,4 +23,4 @@ app.use('/', require('./api'))
 
 let PORT = process.env['PORT'] || '3000'
 app.use(express.static('../client'))
-app.listen(parseInt(PORT), () => console.log(`### Chatr server v${packageJson.version} started on ${PORT}`))
+app.listen(parseInt(PORT), () => console.log(`### 🚀 Chatr server v${packageJson.version} started on ${PORT}`))
