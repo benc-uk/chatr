@@ -13,7 +13,7 @@ GITHUB_TOKEN ?= ""
 # Don't change
 SRC_DIR := server
 
-.PHONY: help image push run watch deploy
+.PHONY: help image push run watch deploy lint lint-fix
 .DEFAULT_GOAL := help
 
 help:  ## 💬 This help message
@@ -21,9 +21,11 @@ help:  ## 💬 This help message
 
 lint: $(SRC_DIR)/node_modules  ## 🔎 Lint & format, will not fix but sets exit code on error 
 	cd $(SRC_DIR); npm run lint
+	server/node_modules/.bin/prettier client/js --check
 
 lint-fix: $(SRC_DIR)/node_modules  ## 📜 Lint & format, will try to fix errors and modify code
 	cd $(SRC_DIR); npm run lint-fix
+	server/node_modules/.bin/prettier client/js --write
 
 image:  ## 🔨 Build container image from Dockerfile 
 	docker build $(SRC_DIR) --file build/Dockerfile \
@@ -54,9 +56,14 @@ endif
 	@az deployment sub create \
 	--template-file deploy/main.bicep \
 	--location $(AZURE_REGION) \
-	--parameters githubRepo=$(GITHUB_REPO) githubToken="$(GITHUB_TOKEN)" resPrefix=$(AZURE_PREFIX) resGroupName=$(AZURE_RESGRP) location=$(AZURE_REGION)
-	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io"
-	@echo "🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query 'properties.outputs.appUrl.value')"
+	--parameters githubRepo=$(GITHUB_REPO) \
+	githubToken="$(GITHUB_TOKEN)" \
+	resPrefix=$(AZURE_PREFIX) \
+	resGroupName=$(AZURE_RESGRP) \
+	location=$(AZURE_REGION) \
+	serverImage=$(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io" -o table
+	@echo "\n✨ Deployment complete!\n🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query 'properties.outputs.appUrl.value')"
 
 # ============================================================================
 
