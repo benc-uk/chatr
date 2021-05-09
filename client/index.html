@@ -27,8 +27,8 @@
   <body>
     <!-- Main app -->
     <section class="section" id="app">
-      <div class="notification is-danger" v-if="error">{{ error }}</div>
-      <div class="columns" v-if="user">
+      <div class="notification is-danger" v-if="ws && error">{{ error }}</div>
+      <div class="columns" v-if="ws">
 
         <!-- box for group chats -->
         <div class="column">
@@ -119,6 +119,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.4, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.5, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>

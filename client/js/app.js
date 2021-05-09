@@ -35,7 +35,7 @@ async function startApp() {
       }
     },
 
-    async mounted() {
+    async beforeMount() {
       // Get user details
       try {
         let userRes = await fetch(`/.auth/me`)
