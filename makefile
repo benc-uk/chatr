@@ -34,7 +34,7 @@ image:  ## 🔨 Build container image from Dockerfile
 push:  ## 📤 Push container image to registry 
 	docker push $(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
 
-run: $(SRC_DIR)/node_modules  ## 🏃 Run locally using Node.js
+run: $(SRC_DIR)/node_modules  ## 🏃 Run server locally using node
 	cd $(SRC_DIR); npm start
 
 watch: $(SRC_DIR)/node_modules  ## 👀 Watch & hot reload locally using nodemon
@@ -64,6 +64,9 @@ endif
 	serverImage=$(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
 	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io" -o table
 	@echo "\n✨ Deployment complete!\n🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query 'properties.outputs.appUrl.value')"
+
+tunnel:  ## 🚇 Start loophole tunnel to expose localhost
+	loophole http 3000 --hostname chatr
 
 # ============================================================================
 

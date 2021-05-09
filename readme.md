@@ -1,10 +1,12 @@
-# Chatr - Azure Web PubSub Reference App
+# Chatr - Azure Web PubSub Sample App
 
-This is a demonstration / sample application designed to be a simple web based chat system.
+This is a demonstration & sample application designed to be a simple web based chat system.
 
 It provides group and private chats, a persistent user list and several other features.
 
 It is built on several Azure technologies: _Web PubSub, Static Web Apps, Table Storage_ and _Container Instances_
+
+> 👁‍🗨 Note. This is a side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
 
 Goals:
 
@@ -54,9 +56,13 @@ Some notes:
 
 ## Server
 
-This is the backend handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
+This is the backend, handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
 
-The source for this is found in **server/** and is a Node.js Express app. It connects to Azure Table Storage to persist group chat and user data. The REST api is found in `api.js` the pubsub handlers in `pubsub.js` and table storage code in `state.js`
+The source for this is found in **server/** and is a Node.js Express app. It connects to Azure Table Storage to persist group chat and user data (Table Storage was picked as it's simple & cheap).
+
+The code layout is fairly logical, the REST API is found in `api.js` the pubsub handlers in `pubsub.js` and table storage code in `state.js`, with `server.js` being the entrypoint plus Express code
+
+When running locally the server also acts as a host for the client frontend, serving the **client/** directory as static content, when running in Azure and from a container this is NOT used
 
 ### Server REST API
 
@@ -72,13 +78,13 @@ There is two way message flow between clients and the server via [Azure Web PubS
 
 Notes:
 
-- Chat IDs are simply randomly generated GUIDs, these correspond to group names in the subprotocol.
-- Private chats are a special case, they are not persisted into state, and they do not trigger **chatCreated** events. Also the user doesn't issue a **joinChat** event to join them, that is handled by the server.
-- User IDs are simply strings which are considered to be unique
+- Chat IDs are simply randomly generated GUIDs, these correspond to the names of "groups" in the subprotocol.
+- Private chats are a special case, they are not persisted in state, and they do not trigger **chatCreated** events. Also the user doesn't issue a **joinChat** event to join them, that is handled by the server as a kind og push.
+- User IDs are simply strings which are considered to be unique, this could be improved.
 
 #### Client Messaging
 
-Chat messages sent from the client use `sendToGroup` and a custom JSON payload with two fields `message` and `user`:
+Chat messages sent from the client use `sendToGroup` and a custom JSON payload with two fields `message` and `user`, these messages are relayed client to client, the server is never notified of them:
 
 ```
 {
@@ -92,7 +98,7 @@ Chat messages sent from the client use `sendToGroup` and a custom JSON payload w
 }
 ```
 
-Events from the the client are sent as `event` type messages using the json.webpubsub.azure.v1 protocol, the events sent are:
+Events from the the client are sent as `event` type messages using the _json.webpubsub.azure.v1_ protocol, the events sent are:
 
 - **createChat** - Request the server you want to create a group chat
 - **createPrivateChat** - Request the server you want to create a private chat
@@ -120,16 +126,15 @@ Where eventType is one of:
 - **userOffline** - Let all users know a user has left
 - **joinPrivateChat** - Sent to both the initiator and recipient of a private chat
 
-## Notes on Design and Service Choice
+## Some Notes on Design and Service Choice
 
-The intention was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is _Azure Functions_ under the hood). Several issues were found with this initial approach:
+The intention was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected rather than simply hosting the client static files from the server API component. This was because _Azure Static Web Apps_ has [amazing support for codeless and configless user signin and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage. Several issues were found with this initial approach:
 
-- _Azure Static Web Apps_ was selected rather than simple hosting the client static files from the server API component. This was because _Azure Static Web Apps_ has [amazing support for codeless and configless end user signin and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
 - [API support in _Static Web Apps_ is quite limited](https://docs.microsoft.com/en-us/azure/static-web-apps/apis) and can't support the new bindings and triggers for Web PubSub.
 - I tried using a standalone _Azure Function App_, however the new bindings and triggers for Web PubSub would still not work, this is hopefully just a bug
 - It was decided to write the server component as a containerized Node.js Express app which could be run anywhere, there are some implications to this approach:
   - CORS issues, as the frontend client is making calls to a different domain/host, so CORS had to be set to '\*' on the server
-  - The server must expose it's APIs over HTTPs, to prevent mixed content errors and because _Azure Web PubSub_ will only call an upstream event handler over HTTPs. To achieve this a sidecar container is used which runs the [Caddy 2 web server](https://caddyserver.com/), acting as a reverse proxy in front of the real server. See the **deploy/modules/server.bicep** file for details on how this is achieved
+  - The server must expose it's APIs over HTTPS, to prevent mixed content errors and because _Azure Web PubSub_ will only call an upstream event handler over HTTPS. To achieve this a sidecar container is used which runs the [Caddy 2 web server](https://caddyserver.com/), acting as a reverse proxy in front of the real server. See the **deploy/modules/server.bicep** file for details on how this is achieved
 
 # Running and Deploying the App
 
