@@ -8,6 +8,11 @@ It is built on several Azure technologies: _Web PubSub, Static Web Apps and \_Ta
 
 > 👁‍🗨 Note. This is a side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
 
+![](https://img.shields.io/github/license/benc-uk/chatr)
+![](https://img.shields.io/github/last-commit/benc-uk/chatr)
+![](https://img.shields.io/github/checks-status/benc-uk/chatr/main)
+![](https://img.shields.io/github/workflow/status/benc-uk/chatr/Azure%20Static%20Web%20Apps%20Deploy?label=client-deploy)
+
 Goals:
 
 - Learn about using websockets
@@ -26,14 +31,6 @@ Use cases & key features:
 # Screenshot
 
 ![](./etc/screen.png)
-
----
-
-![](https://img.shields.io/github/license/benc-uk/chatr)
-![](https://img.shields.io/github/last-commit/benc-uk/chatr)
-![](https://img.shields.io/github/checks-status/benc-uk/chatr/main)
-![](https://img.shields.io/github/workflow/status/benc-uk/chatr/Azure%20Static%20Web%20Apps%20CI%2FCD?label=client-deploy)
-![](https://img.shields.io/github/workflow/status/benc-uk/chatr/Build%20Server%20Image?label=server-build)
 
 # Architecture
 
