@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "",
+    "PUBSUB_CONNECTION_STRING": "__CHANGE_ME__",
+    "PUBSUB_HUB": "chat",
+    "STORAGE_ACCOUNT_NAME": "__CHANGE_ME__",
+    "STORAGE_ACCOUNT_KEY": "__CHANGE_ME__"
+  }
+}

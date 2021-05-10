@@ -3,11 +3,17 @@
   "version": "0.0.6",
   "description": "API and event handler for Chatr",
   "scripts": {
-    "start": "swa start ../client --api . --swa-config-location ../client"
+    "start": "swa start ../client --api . --swa-config-location ../client",
+    "lint": "eslint . && prettier --check *.js",
+    "lint-fix": "eslint . --fix && prettier --write *.js"
   },
   "author": "",
   "dependencies": {
     "@azure/data-tables": "^12.0.0-beta.2",
     "@azure/web-pubsub": "^1.0.0-beta.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.25.0",
+    "prettier": "^2.2.1"
   }
 }

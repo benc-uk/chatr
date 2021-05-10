@@ -3,7 +3,6 @@ targetScope = 'subscription'
 param resPrefix string = 'chatr'
 param resGroupName string = 'chatr'
 param location string = 'westeurope'
-param serverImage string = 'ghcr.io/benc-uk/chatr/server:latest'
 
 // Required params
 param githubRepo string 

@@ -246,7 +246,6 @@ async function startApp() {
       // Vue event handler for when leave is clicked in child chat component
       //
       onLeaveEvent(chatId) {
-        console.log('LEAVING', chatId)
         this.$delete(this.joinedChats, chatId)
         this.ws.send(
           JSON.stringify({

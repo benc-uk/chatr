@@ -4,7 +4,7 @@ This is a demonstration & sample application designed to be a simple web based c
 
 It provides group and private chats, a persistent user list and several other features.
 
-It is built on several Azure technologies: _Web PubSub, Static Web Apps, Table Storage_ and _Container Instances_
+It is built on several Azure technologies: _Web PubSub, Static Web Apps and \_Table Storage_
 
 > 👁‍🗨 Note. This is a side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
 
@@ -51,24 +51,20 @@ Some notes:
 - Vue.js is used as a browser side library loaded from CDN with `<script>` tag, this is an elegant & lightweight approach supported by modern browsers, rather than the usual vue-cli style app which requires Node and webpack etc.
 - `client/js/app.js` shows how to create a Vue.js app with child components using this approach.
 - `client/js/components/chat.js` is a Vue.js component used to host each chat tab in the application
-- `client/js/config.js` Tries to find out the API endpoint, it does this by calling **_another_** API, `/api/getEndpoint` this is a mini API is hosted by Azure Static Web Apps, and is a trivial single function app, found in **/client-api** folder, it simply returns the value of the environmental variable `API_ENDPOINT` as JSON, therefore allowing for [dynamic configuration using application settings](https://docs.microsoft.com/en-us/azure/static-web-apps/application-settings)
-- When hosted in _Static Web Apps_, the special `.auth/` endpoint is used to sign users in and fetch their user details, such as userId. When running locally users are prompted to simply enter a name.
+- The special `.auth/` endpoint provided by Static Web Apps is used to sign users in and fetch their user details, such as userId.
 
 ## Server
 
 This is the backend, handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
 
-The source for this is found in **server/** and is a Node.js Express app. It connects to Azure Table Storage to persist group chat and user data (Table Storage was picked as it's simple & cheap).
+The source for this is found in **api/** and is a Node.js Function App. It connects to Azure Table Storage to persist group chat and user data (Table Storage was picked as it's simple & cheap).
 
-The code layout is fairly logical, the REST API is found in `api.js` the pubsub handlers in `pubsub.js` and table storage code in `state.js`, with `server.js` being the entrypoint plus Express code
+There are four functions:
 
-When running locally the server also acts as a host for the client frontend, serving the **client/** directory as static content, when running in Azure and from a container this is NOT used
-
-### Server REST API
-
-- GET `/api/chats` - Return a JSON object where each key is a chat ID, and each value is an chat object holding name, id, etc
-- GET `/api/users` - Return a JSON object where each key is a user ID, and each value is an user object
-- GET `/api/getToken?userId={userId}` - Return a token containing a URL so that the client can connect to the PubSub websocket, using `getAuthenticationToken()`
+- `eventHandler` - Webhook receiver for "upstream" events sent from Azure Web PubSub service, contains the majority of application logic. Not called by the client.
+- `getToken` - Called by the client to get an access token and URL to connect via WebSockets to the Azure Web PubSub service.
+- `getUsers` - Returns a list of signed in users, note the route for this function is `/api/users`
+- `getChats` - Returns a list of active group chats, note the route for this function is `/api/chats`
 
 ### WebSocket & API Message Flows
 
@@ -105,7 +101,7 @@ Events from the the client are sent as `event` type messages using the _json.web
 - **joinChat** - To join a chat, the server will add user to the group for that chatId
 - **leaveChat** - To leave a group chat
 
-There are event handlers for each of these user events in `pubsub.js` along with handlers for connection & disconnection system events.
+The `eventHandler` function has cases for each of these user events, along with handlers for connection & disconnection system events.
 
 #### Server Messaging
 
@@ -128,13 +124,14 @@ Where eventType is one of:
 
 ## Some Notes on Design and Service Choice
 
-The intention was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected rather than simply hosting the client static files from the server API component. This was because _Azure Static Web Apps_ has [amazing support for codeless and configless user signin and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage. Several issues were found with this initial approach:
+The plan of this project was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected rather than simply hosting the client static files from the server API component.
 
-- [API support in _Static Web Apps_ is quite limited](https://docs.microsoft.com/en-us/azure/static-web-apps/apis) and can't support the new bindings and triggers for Web PubSub.
-- I tried using a standalone _Azure Function App_, however the new bindings and triggers for Web PubSub would still not work, this is hopefully just a bug
-- It was decided to write the server component as a containerized Node.js Express app which could be run anywhere, there are some implications to this approach:
-  - CORS issues, as the frontend client is making calls to a different domain/host, so CORS had to be set to '\*' on the server
-  - The server must expose it's APIs over HTTPS, to prevent mixed content errors and because _Azure Web PubSub_ will only call an upstream event handler over HTTPS. To achieve this a sidecar container is used which runs the [Caddy 2 web server](https://caddyserver.com/), acting as a reverse proxy in front of the real server. See the **deploy/modules/server.bicep** file for details on how this is achieved
+This was because _Azure Static Web Apps_ has [amazing support for codeless and configless user signin and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
+
+Some comments on this approach:
+
+- [API support in _Static Web Apps_ is quite limited](https://docs.microsoft.com/en-us/azure/static-web-apps/apis) and can't support the new bindings and triggers for Web PubSub. **HOWEVER** You don't need to use these bindings 😂. You can create a standard HTTP function to act as a webhook event handler instead of using the `webPubSubConnection` binding. For sending messages back to Web PubSub, the server SDK can simply be used within the function code rather than using the `webPubSub` output binding.
+- Table Storage was picked for persisting state as it has a good JS SDK (the new SDK in @azure/data-table was used), it's extremely lightweight and cheap and was good enough for this project
 
 # Running and Deploying the App
 
@@ -147,17 +144,14 @@ $ make
 help                 💬 This help message
 lint                 🔎 Lint & format, will not fix but sets exit code on error
 lint-fix             📜 Lint & format, will try to fix errors and modify code
-image                🔨 Build server container image from Dockerfile
-push                 📤 Push server container image to registry
-run                  🏃 Run server locally using Node.js
-watch                👀 Watch & hot reload server locally using nodemon
+run                  🏃 Run server locally using Static Web Apps CLI
 clean                🧹 Clean up project
 deploy               🚀 Deploy everything to Azure using Bicep
 ```
 
 ## Deploying to Azure
 
-Deployment is fairly complex due to the number of components and the configuration between them. The makefile target `deploy` should deploy everything for you in a single step using Bicep templates found in the **deploy/** folder
+Deployment is slightly complex due to the number of components and the configuration between them. The makefile target `deploy` should deploy everything for you in a single step using Bicep templates found in the **deploy/** folder
 
 Summary of steps:
 
@@ -167,22 +161,20 @@ Summary of steps:
 - Review `AZURE_` variables in makefile
 - Run `make deploy GITHUB_TOKEN={{your-github-token}}`
 
-This will deploy the backend server from a public container image `ghcr.io/benc-uk/chatr/server:latest` which is build from the main branch of the benc-uk/chatr repo. If you want to use your own image, set the make variables: `IMAGE_REG`, `IMAGE_REPO` & `IMAGE_TAG`
-
 ## Running Locally
 
 This is possible but it requires some juggling, and some amount of manual config
 
-When running locally the API endpoint used for user sign-in is nto available (it's provided by Azure Static Web App), instead a simple prompt for a user name is used instead.
+When running locally the Static Web Apps CLI is used and this provides a fake user authentication endpoint for us.
 
 - Deploy _Azure Storage_ account, get name and access key.
 - Deploy _Azure Web Pub Sub_, get connection string.
-- Copy `server/.env.sample` to `server/.env` and set the required environmental vars.
+- Copy `api/local.settings.sample.json` to `api/local.settings.json` and edit the required setting values.
 - Start local tunnel service such as **ngrok** or **loophole**. The tunnel should expose port 3000 over HTTP. I use [loophole](https://loophole.cloud/) as it allows me to set the hostname, e.g.
   - `loophole http 3000 --hostname chatr`
 - In _Azure Web Pub Sub_ settings.
   - Add a hub named **chat**
-  - In the URL template put `https://{{hostname-of-tunnel-service}}/pubsub/events`
+  - In the URL template put `https://{{hostname-of-tunnel-service}}/api/eventHandler`
   - In system events tick **connected** and **disconnected**
-- Run `make run` or `make watch`
-- Open `http://localhost:3000`
+- Run `make run`
+- Open `http://localhost:4280/index.html`

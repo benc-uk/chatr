@@ -1,6 +1,6 @@
 const state = require('../state')
 
-module.exports = async function (context, req) {
+module.exports = async function (context) {
   const users = await state.listUsers()
 
   context.res = {
