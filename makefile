@@ -61,8 +61,10 @@ endif
 	resPrefix=$(AZURE_PREFIX) \
 	resGroupName=$(AZURE_RESGRP) \
 	location=$(AZURE_REGION) \
-	serverImage=$(IMAGE_REG)/$(IMAGE_REPO):$(IMAGE_TAG)
-	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "API_ENDPOINT=https://$(AZURE_PREFIX).$(AZURE_REGION).azurecontainer.io" -o table
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "PUBSUB_CONNECTION_STRING=" -o table
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "PUBSUB_HUB=chat" -o table
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "STORAGE_ACCOUNT_KEY=" -o table
+	az staticwebapp appsettings set --name $(AZURE_PREFIX) --setting-names "STORAGE_ACCOUNT_NAME=$(AZURE_PREFIX)store" -o table
 	@echo "\n✨ Deployment complete!\n🌐 The URL to accecss the app is: $(shell az deployment sub show --name main --query 'properties.outputs.appUrl.value')"
 
 tunnel:  ## 🚇 Start loophole tunnel to expose localhost

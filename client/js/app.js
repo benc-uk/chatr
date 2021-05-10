@@ -1,15 +1,8 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
-import { getApiEndpoint } from './config.js'
 import { toast } from 'https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js'
 
-let API_ENDPOINT
-
 async function startApp() {
-  // Has to be wrapped in an async function, can't use a Vue lifecycle hook
-  // If we don't do this we get a race condition and the app might start before we have the API endpoint
-  API_ENDPOINT = await getApiEndpoint()
-
   new Vue({
     el: '#app',
 
@@ -61,27 +54,31 @@ async function startApp() {
 
       try {
         // Get all existing chats from server
-        let res = await fetch(`${API_ENDPOINT}/api/chats`)
+        let res = await fetch(`/api/chats`)
+        if (!res.ok) throw `chats error: ${await res.text()}`
         let data = await res.json()
         this.allChats = data.chats
 
         // Get all existing users from server
-        res = await fetch(`${API_ENDPOINT}/api/users`)
+        res = await fetch(`/api/users`)
+        if (!res.ok) throw `users error: ${await res.text()}`
         data = await res.json()
         this.allUsers = data.users
 
         // Get URL & token to connect to Azure Web Pubsub
-        res = await fetch(`${API_ENDPOINT}/api/getToken?userId=${this.user}`)
+        res = await fetch(`/api/getToken?userId=${this.user}`)
+        if (!res.ok) throw `getToken error: ${await res.text()}`
         let token = await res.json()
 
         // Now connect to Azure Web PubSub using the URL we got
         this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
       } catch (err) {
-        this.error = `💩 Failed to get data from the server (API_ENDPOINT='${API_ENDPOINT}'), it could be down. You could try refreshing the page 🤷‍♂️`
+        console.error(`API ERROR: ${err}`)
+        this.error = `💩 Failed to get data from the server ${err}, it could be down. You could try refreshing the page 🤷‍♂️`
+        return
       }
 
       // Handle messages from server
-      // this.ws.onmessage = (evt) => {
       this.ws.addEventListener('message', (evt) => {
         let msg = JSON.parse(evt.data)
 

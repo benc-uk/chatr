@@ -49,10 +49,10 @@ Some notes:
 
 - ES6 modules are used so the various JS files can use import/export without the need to bundle.
 - Vue.js is used as a browser side library loaded from CDN with `<script>` tag, this is an elegant & lightweight approach supported by modern browsers, rather than the usual vue-cli style app which requires Node and webpack etc.
-- `js/app.js` shows how to create a Vue.js app with child components using this approach.
+- `client/js/app.js` shows how to create a Vue.js app with child components using this approach.
 - `client/js/components/chat.js` is a Vue.js component used to host each chat tab in the application
-- `config.js` Tries to find out the API endpoint, it does this by calling **_another_** API, `/api/getEndpoint` this is a mini API is hosted by Azure Static Web Apps, and is a trivial single function app, found in **/client-api** folder, it simply returns the value of the environmental variable `API_ENDPOINT` as JSON, therefore allowing for [dynamic configuration using application settings](https://docs.microsoft.com/en-us/azure/static-web-apps/application-settings)
-- When hosted in Static Web Apps, the `.auth/` endpoint is used to sign users in and fetch their user details, such as userId. When running locally users are prompted to simply enter a name.
+- `client/js/config.js` Tries to find out the API endpoint, it does this by calling **_another_** API, `/api/getEndpoint` this is a mini API is hosted by Azure Static Web Apps, and is a trivial single function app, found in **/client-api** folder, it simply returns the value of the environmental variable `API_ENDPOINT` as JSON, therefore allowing for [dynamic configuration using application settings](https://docs.microsoft.com/en-us/azure/static-web-apps/application-settings)
+- When hosted in _Static Web Apps_, the special `.auth/` endpoint is used to sign users in and fetch their user details, such as userId. When running locally users are prompted to simply enter a name.
 
 ## Server
 

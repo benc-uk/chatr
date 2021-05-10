@@ -18,7 +18,7 @@
     />
 
     <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js"></script>
 
     <!-- App stuff -->
     <script type="module" src="js/app.js"></script>
@@ -27,7 +27,7 @@
   <body>
     <!-- Main app -->
     <section class="section" id="app">
-      <div class="notification is-danger" v-if="ws && error">{{ error }}</div>
+      <div class="notification is-danger" v-if="error">{{ error }}</div>
       <div class="columns" v-if="ws">
 
         <!-- box for group chats -->
@@ -119,6 +119,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.5, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.6, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>

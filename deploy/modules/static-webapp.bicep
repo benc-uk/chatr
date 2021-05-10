@@ -21,7 +21,7 @@ resource staticApp 'Microsoft.Web/staticSites@2020-12-01' = {
     
     buildProperties: {
       appLocation: 'client'
-      apiLocation: 'client-api'
+      apiLocation: 'api'
     }
   }
 }

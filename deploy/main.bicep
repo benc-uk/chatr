@@ -45,24 +45,26 @@ module pubsub 'modules/pubsub.bicep' = {
   params: {
     name: resPrefix
     location: location
-    eventHandlerUrl: 'https://${resPrefix}.${location}.azurecontainer.io/pubsub/events'
+    eventHandlerUrl: 'https://${staticApp.outputs.appHostname}/api/eventHandler'
   }
 }
 
-module network 'modules/server.bicep' = {
-  scope: resGroup
-  name: 'server'
-  params: {
-    name: resPrefix
-    dnsPrefix: resPrefix
-    location: location
+// module network 'modules/server.bicep' = {
+//   scope: resGroup
+//   name: 'server'
+//   params: {
+//     name: resPrefix
+//     dnsPrefix: resPrefix
+//     location: location
     
-    storageAccount: storageName
-    storageKey: storage.outputs.key
-    storageShare: shareName
+//     storageAccount: storageName
+//     storageKey: storage.outputs.key
+//     storageShare: shareName
 
-    pubsubConnString: 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
-  }
-}
+//     pubsubConnString: 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
+//   }
+// }
 
 output appUrl string = 'https://${staticApp.outputs.appHostname}'
+output pubSubConnStr string = 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
+output storageKey string = storage.outputs.key
