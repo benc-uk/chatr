@@ -1,3 +1,9 @@
+//
+// Chatr - API
+// REST API to get an access token and URL so that clients can connect to Azure PubSub websocket
+// Ben Coleman, 2021
+//
+
 const { WebPubSubServiceClient } = require('@azure/web-pubsub')
 
 const CONN_STR = process.env.PUBSUB_CONNECTION_STRING

@@ -57,7 +57,7 @@ Some notes:
 
 This is the backend, handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
 
-The source for this is found in **api/** and is a Node.js Function App. It connects to Azure Table Storage to persist group chat and user data (Table Storage was picked as it's simple & cheap).
+The source for this is found in **api/** and is a Node.js Function App. It connects to Azure Table Storage to persist group chat and user data (Table Storage was picked as it's simple & cheap). This is not hosted in a standalone Azure Function App but instead [deployed into the Static Web App as part of it's serverless API support](https://docs.microsoft.com/en-us/azure/static-web-apps/apis)
 
 There are four functions:
 
@@ -122,11 +122,11 @@ Where eventType is one of:
 - **userOffline** - Let all users know a user has left
 - **joinPrivateChat** - Sent to both the initiator and recipient of a private chat
 
+The client code in `client/js/app.js` handles these messages as they are received by the client, and reacts accordingly.
+
 ## Some Notes on Design and Service Choice
 
-The plan of this project was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected rather than simply hosting the client static files from the server API component.
-
-This was because _Azure Static Web Apps_ has [amazing support for codeless and configless user signin and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
+The plan of this project was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected because it has [amazing support for codeless and config-less user sign-in and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
 
 Some comments on this approach:
 

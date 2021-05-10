@@ -1,13 +1,17 @@
+//
+// Chatr - API
+// Webhook event handler for receiving upstream events from Azure Web PubSub
+//
+// NOTE. This function DOES NOT use the Web PubSub Trigger binding as you might expect
+// So we can host it in Static Web App, we handle the HTTP webhooks manually, it's not hard :)
+// Ben Coleman, 2021
+//
+
 const { WebPubSubServiceClient } = require('@azure/web-pubsub')
 const state = require('../state')
 
 const CONN_STR = process.env.PUBSUB_CONNECTION_STRING
 const HUB = process.env.PUBSUB_HUB
-
-//
-// NOTE. This function DOES NOT use the Web PubSub Trigger binding as you might expect
-// So we can host it in Static Web App, we handle the HTTP webhooks manually, it's not hard :)
-//
 
 module.exports = async function (context, req) {
   if (!CONN_STR || !HUB) {
@@ -19,7 +23,7 @@ module.exports = async function (context, req) {
 
   context.log(`### Web PubSub event handler called with method ${req.method}`)
 
-  // Handle webhook validation https://azure.github.io/azure-webpubsub/references/protocol-cloudevents#validation
+  // We have to handle webhook validation https://azure.github.io/azure-webpubsub/references/protocol-cloudevents#validation
   if (req.method === 'GET') {
     context.log(`### Webhook validation was called for ${req.headers['webhook-request-origin']}`)
     context.res = {
@@ -31,6 +35,8 @@ module.exports = async function (context, req) {
     context.done()
     return
   }
+
+  // We we're here, then it's a POST request for a real event
 
   const serviceClient = new WebPubSubServiceClient(CONN_STR, HUB)
 
@@ -153,7 +159,7 @@ module.exports = async function (context, req) {
     }, 500)
   }
 
-  // Response a 200 to the webhook
+  // Respond with a 200 to the webhook
   context.res = { status: 200 }
   context.done()
 }

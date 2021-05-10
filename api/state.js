@@ -1,5 +1,5 @@
 //
-// Chatr - Server
+// Chatr - API
 // State management and persistence backed with Azure Table storage
 // Ben Coleman, 2021
 //

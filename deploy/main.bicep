@@ -10,7 +10,6 @@ param githubRepo string
 param githubToken string
 
 var storageName = '${resPrefix}store'
-var shareName = 'caddydata'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-01-01' = {
   name: resGroupName
@@ -34,7 +33,6 @@ module storage 'modules/storage.bicep' = {
   params: {
     name: storageName
     location: location
-    shareName: shareName
   }
 }
 
@@ -47,22 +45,6 @@ module pubsub 'modules/pubsub.bicep' = {
     eventHandlerUrl: 'https://${staticApp.outputs.appHostname}/api/eventHandler'
   }
 }
-
-// module network 'modules/server.bicep' = {
-//   scope: resGroup
-//   name: 'server'
-//   params: {
-//     name: resPrefix
-//     dnsPrefix: resPrefix
-//     location: location
-    
-//     storageAccount: storageName
-//     storageKey: storage.outputs.key
-//     storageShare: shareName
-
-//     pubsubConnString: 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
-//   }
-// }
 
 output appUrl string = 'https://${staticApp.outputs.appHostname}'
 output pubSubConnStr string = 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'

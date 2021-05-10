@@ -22,7 +22,7 @@ lint-fix: $(SRC_DIR)/node_modules  ## 📜 Lint & format, will try to fix errors
 	cd $(SRC_DIR); npm run lint-fix
 
 run: $(SRC_DIR)/node_modules  ## 🏃 Run server locally using node
-	@which swa > /dev/null || { echo "👋 Must install the SWA CLI https://github.com/azure/static-web-apps-cli"; exit 1; }
+	@which swa > /dev/null || { echo "👋 Must install the SWA CLI https://aka.ms/swa-cli"; exit 1; }
 	swa start ./client --api ./api --swa-config-location ./client
 
 clean:  ## 🧹 Clean up project
