@@ -1,8 +1,3 @@
-# Used by `image`, `push` & `deploy` targets, override as required
-IMAGE_REG ?= ghcr.io
-IMAGE_REPO ?= benc-uk/chatr/server
-IMAGE_TAG ?= latest
-
 # Used by `deploy` target
 AZURE_PREFIX ?= chatr
 AZURE_RESGRP ?= apps
@@ -13,7 +8,7 @@ GITHUB_TOKEN ?=
 # Don't change
 SRC_DIR := api
 
-.PHONY: help image push run watch deploy lint lint-fix
+.PHONY: help run deploy lint lint-fix
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 
