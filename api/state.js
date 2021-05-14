@@ -21,6 +21,9 @@ if (!account || !accountKey) {
   console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
 }
 
+// ==============================================================
+// Create tables and absorb errors if they already exist
+// ==============================================================
 async function initTables() {
   console.log(`### 📭 Connected to Azure table storage: ${account}`)
 
@@ -36,8 +39,14 @@ async function initTables() {
   }
 }
 
+// ==============================================================
+// Called when module is imported
+// ==============================================================
 initTables()
 
+// ==============================================================
+// Chat state functions
+// ==============================================================
 async function upsertChat(id, chat) {
   const chatEntity = {
     partitionKey: partitionKey,
@@ -75,6 +84,9 @@ async function listChats() {
   return chatsResp
 }
 
+// ==============================================================
+// User state functions
+// ==============================================================
 async function upsertUser(id, user) {
   const userEntity = {
     partitionKey: partitionKey,
@@ -111,6 +123,9 @@ async function getUser(id) {
   }
 }
 
+// ==============================================================
+// Export functions into module scope
+// ==============================================================
 module.exports = {
   upsertChat,
   removeChat,

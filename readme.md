@@ -62,6 +62,8 @@ There are four functions:
 - `getUsers` - Returns a list of signed in users, note the route for this function is `/api/users`
 - `getChats` - Returns a list of active group chats, note the route for this function is `/api/chats`
 
+State is handled with `state.js` which is an ES6 module exporting functions supporting state CRUD for users and chats. This module carries out all the interaction with Azure Tables, and provides a relatively transparent interface, so a different storage backend could be swapped in.
+
 ## WebSocket & API Message Flows
 
 There is two way message flow between clients and the server via [Azure Web PubSub and event handlers](https://azure.github.io/azure-webpubsub/concepts/service-internals#event-handler)
