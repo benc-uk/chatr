@@ -1,6 +1,6 @@
 # Used by `deploy` target
 AZURE_PREFIX ?= chatr
-AZURE_RESGRP ?= apps
+AZURE_RESGRP ?= projects
 AZURE_REGION ?= westeurope
 GITHUB_REPO ?= $(shell git remote get-url origin)
 GITHUB_TOKEN ?= 
@@ -29,7 +29,7 @@ clean:  ## 🧹 Clean up project
 	rm -rf $(SRC_DIR)/node_modules
 
 deploy:  ## 🚀 Deploy everything to Azure using Bicep
-	./deploy/deploy.sh
+	@./deploy/deploy.sh
 
 tunnel:  ## 🚇 Start loophole tunnel to expose localhost
 	loophole http 3000 --hostname chatr
