@@ -1,12 +1,11 @@
 # Chatr - Azure Web PubSub Sample App
 
-This is a demonstration & sample application designed to be a simple web based chat system.
-
+This is a demonstration & sample application designed to be a simple multi-user web based chat system.  
 It provides group and private chats, a persistent user list and several other features.
 
-It is built on several Azure technologies: _Web PubSub, Static Web Apps and \_Table Storage_
+It is built on several Azure technologies, including: _Web PubSub, Static Web Apps and \_Table Storage_
 
-> 👁‍🗨 Note. This is a side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
+> 👁‍🗨 Note. This is a personal side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
 
 ![](https://img.shields.io/github/license/benc-uk/chatr)
 ![](https://img.shields.io/github/last-commit/benc-uk/chatr)
@@ -17,9 +16,9 @@ Goals:
 
 - Learn about using websockets
 - Write a 'fun' thing
-- Try out the new Azure Web PubSub service
-- Use the authentication features of Azure Static Web Apps
-- Deploy everything using Azure Bicep
+- Try out the new _Azure Web PubSub_ service
+- Use the authentication features of _Azure Static Web Apps_
+- Deploy everything using _Azure Bicep_
 
 Use cases & key features:
 
@@ -36,11 +35,11 @@ Use cases & key features:
 
 ![](./etc/diagram.png)
 
-## Client / Frontend
+# Client / Frontend
 
 This is the part used by end users, and is the web frontend.
 
-The source for this is found in **client/** and is a static standalone pure ES6 JS application, no bundling or Node is required. It is written using Vue.js.
+The source for this is found in **client/** and is a static standalone pure ES6 JS application, no bundling or Node.js is required. It is written using [Vue.js as a supporting framework](https://vuejs.org/), and [Bulma as a CSS framework](https://bulma.io/).
 
 Some notes:
 
@@ -50,7 +49,7 @@ Some notes:
 - `client/js/components/chat.js` is a Vue.js component used to host each chat tab in the application
 - The special `.auth/` endpoint provided by Static Web Apps is used to sign users in and fetch their user details, such as userId.
 
-## Server
+# Server
 
 This is the backend, handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
 
@@ -63,7 +62,7 @@ There are four functions:
 - `getUsers` - Returns a list of signed in users, note the route for this function is `/api/users`
 - `getChats` - Returns a list of active group chats, note the route for this function is `/api/chats`
 
-### WebSocket & API Message Flows
+## WebSocket & API Message Flows
 
 There is two way message flow between clients and the server via [Azure Web PubSub and event handlers](https://azure.github.io/azure-webpubsub/concepts/service-internals#event-handler)
 
@@ -72,10 +71,10 @@ There is two way message flow between clients and the server via [Azure Web PubS
 Notes:
 
 - Chat IDs are simply randomly generated GUIDs, these correspond to the names of "groups" in the subprotocol.
-- Private chats are a special case, they are not persisted in state, and they do not trigger **chatCreated** events. Also the user doesn't issue a **joinChat** event to join them, that is handled by the server as a kind og push.
-- User IDs are simply strings which are considered to be unique, this could be improved.
+- Private chats are a special case, they are not persisted in state, and they do not trigger **chatCreated** events. Also the user doesn't issue a **joinChat** event to join them, that is handled by the server as a kind of "push" to the clients.
+- User IDs are simply strings which are considered to be unique, this could be improved, e.g. with prefixing.
 
-#### Client Messaging
+### Client Messaging
 
 Chat messages sent from the client use `sendToGroup` and a custom JSON payload with two fields `message` and `user`, these messages are relayed client to client, the server is never notified of them:
 
@@ -100,7 +99,7 @@ Events from the the client are sent as `event` type messages using the _json.web
 
 The `eventHandler` function has cases for each of these user events, along with handlers for connection & disconnection system events.
 
-#### Server Messaging
+### Server Messaging
 
 Messages sent from the server have a custom Chatr app specific payload as follows:
 
@@ -121,7 +120,7 @@ Where eventType is one of:
 
 The client code in `client/js/app.js` handles these messages as they are received by the client, and reacts accordingly.
 
-## Some Notes on Design and Service Choice
+# Some Notes on Design and Service Choice
 
 The plan of this project was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless functions in the _Static Web Apps_ API support (which is in fact _Azure Functions_ under the hood). _Azure Static Web Apps_ was selected because it has [amazing support for codeless and config-less user sign-in and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
 
@@ -144,19 +143,14 @@ lint-fix             📜 Lint & format, will try to fix errors and modify code
 run                  🏃 Run server locally using Static Web Apps CLI
 clean                🧹 Clean up project
 deploy               🚀 Deploy everything to Azure using Bicep
+tunnel               🚇 Start loophole tunnel to expose localhost
 ```
 
 ## Deploying to Azure
 
 Deployment is slightly complex due to the number of components and the configuration between them. The makefile target `deploy` should deploy everything for you in a single step using Bicep templates found in the **deploy/** folder
 
-Summary of steps:
-
-- Have Azure CLI, make, git installed
-- Fork (not clone!) this repo
-- [Create a GitHub PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with repo admin rights
-- Review `AZURE_` variables in makefile
-- Run `make deploy GITHUB_TOKEN={{your-github-token}}`
+[See readme in deploy folder for details and instructions](./deploy)
 
 ## Running Locally
 

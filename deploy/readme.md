@@ -7,8 +7,8 @@ Pre-reqs:
 - [Fork of this repo](https://github.com/benc-uk/chatr) in GitHub
 - [A GitHub PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with admin rights to the forked repo
 
-The reason a fork is required is due to how Azure Static WebApps deploys the app, after creating the resource in Azure, it creates a GitHub Actions workflow in the repo containing the app code, this workflow carries out the task of building/bundling and deploying the app.  
-If you were to work from a clone the deployment, would try to create this workflow in my repo
+The reason a fork is required is due to Azure Static WebApps having a slightly usual deployment model, after creating the resource in Azure, a GitHub Actions workflow is automatically created (by ARM) in the repo containing the app code, this workflow carries out the task of building/bundling and deploying the app.  
+If you were to work from a clone, the deployment would try to create this workflow in my repo, which would fail.
 
 ### Deployment Notes
 
