@@ -32,7 +32,7 @@ deploy:  ## 🚀 Deploy everything to Azure using Bicep
 	@./deploy/deploy.sh
 
 tunnel:  ## 🚇 Start loophole tunnel to expose localhost
-	loophole http 3000 --hostname chatr
+	loophole http 7071 --hostname chatr
 
 # ============================================================================
 
