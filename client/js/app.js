@@ -139,7 +139,7 @@ async function startApp() {
         if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
           let userName = msg.data.data
           this.$delete(this.allUsers, userName)
-          utils.toastMessage(`💨 ${user.userName} has left or logged off`, 'warning')
+          utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
