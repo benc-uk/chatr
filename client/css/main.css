@@ -28,3 +28,11 @@ footer {
 #app {
   padding-top: 1rem;
 }
+
+.userSelf {
+  color: #467ccc !important;
+}
+
+.userAway {
+  color: #c0bdba !important;
+}

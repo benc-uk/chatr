@@ -36,22 +36,12 @@ module.exports = async function (context, req) {
     return
   }
 
-  // We we're here, then it's a POST request for a real event
+  // If we're here, then it's a POST request for a real event
 
   const serviceClient = new WebPubSubServiceClient(CONN_STR, HUB)
 
   const userId = req.headers['ce-userid']
   const eventName = req.headers['ce-eventname']
-
-  // System event for new connected user
-  if (eventName === 'connected') {
-    context.log(`### User ${userId} connected`)
-    state.upsertUser(userId, { status: 'online' })
-    await serviceClient.sendToAll({
-      chatEvent: 'userOnline',
-      data: userId,
-    })
-  }
 
   // System event for disconnected user, logoff or tab closed
   if (eventName === 'disconnected') {
@@ -63,10 +53,28 @@ module.exports = async function (context, req) {
     })
   }
 
+  // Use a custom event here rather than the system connected event
+  // This means we can pass extra data, not just a userId
+  if (eventName === 'userConnected') {
+    const userName = req.body.userName
+    const userProvider = req.body.userProvider
+    context.log(`### User ${userId} ${userName} ${userProvider} connected`)
+    state.upsertUser(userId, { userName, userProvider, idle: false })
+    await serviceClient.sendToAll({
+      chatEvent: 'userOnline',
+      data: JSON.stringify({
+        userId,
+        userName,
+        userProvider,
+        idle: false,
+      }),
+    })
+  }
+
   if (eventName === 'createChat') {
     const chatName = req.body.name
     const chatId = req.body.id
-    const chatEntity = { id: chatId, name: chatName, members: {} }
+    const chatEntity = { id: chatId, name: chatName, members: {}, owner: userId }
     state.upsertChat(chatId, chatEntity)
 
     serviceClient.sendToAll({
@@ -89,30 +97,34 @@ module.exports = async function (context, req) {
     // Chat id used as the group name
     serviceClient.group(chatId).addUser(userId)
 
+    // Need to call state to get the users name
+    const user = await state.getUser(userId)
+
     // Add user to members of the chat (members is a map/dict) and push back into the DB
-    chat.members[userId] = 'USER'
+    chat.members[userId] = { userId, userName: user.userName }
     await state.upsertChat(chatId, chat)
-    context.log(`### User ${userId} has joined chat ${chat.name}`)
+    context.log(`### User ${user.userName} has joined chat ${chat.name}`)
 
     setTimeout(() => {
-      serviceClient.group(chatId).sendToAll(`💬 <b>${userId}</b> has joined the chat`)
+      serviceClient.group(chatId).sendToAll(`💬 <b>${user.userName}</b> has joined the chat`)
     }, 1000)
   }
 
   if (eventName === 'leaveChat') {
-    const chatId = req.body
-    console.log(`### User ${userId} has left chat ${chatId}`)
+    const chatId = req.body.chatId
+    const userName = req.body.userName
+    context.log(`### User ${userName} has left chat ${chatId}`)
 
     await serviceClient.group(chatId).removeUser(userId)
-    await serviceClient.group(chatId).sendToAll(`💨 <b>${userId}</b> has left the chat`)
+    await serviceClient.group(chatId).sendToAll(`💨 <b>${userName}</b> has left the chat`)
 
-    leaveChat(serviceClient, userId, chatId)
+    leaveChat(userId, chatId)
   }
 
   if (eventName === 'createPrivateChat') {
     const initiator = req.body.initiatorUserId
     const target = req.body.targetUserId
-    console.log(`### Starting private chat ${initiator} -> ${target}`)
+    context.log(`### Starting private chat ${initiator} -> ${target}`)
 
     let chatId = ''
     // This strangeness means we get a unique pair ID no matter who starts the chat
@@ -122,16 +134,20 @@ module.exports = async function (context, req) {
       chatId = `private_${initiator}_${target}`
     }
 
+    // Need to call state to get the users name
+    const initiatorUser = await state.getUser(initiator)
+    const targetUser = await state.getUser(target)
+
     try {
       await serviceClient.group(chatId).addUser(target)
 
       await serviceClient.sendToUser(target, {
         chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${initiator}`, grabFocus: false }),
+        data: JSON.stringify({ id: chatId, name: `Chat with ${initiatorUser.userName}`, grabFocus: false }),
       })
     } catch (err) {
       // This can happen with orphaned disconnected users
-      console.log(`### Target user for private chat not found, will remove them!`)
+      context.log(`### Target user for private chat not found, will remove them!`)
       await removeChatUser(serviceClient, target)
       context.res = { status: 200 }
       context.done()
@@ -143,11 +159,11 @@ module.exports = async function (context, req) {
 
       await serviceClient.sendToUser(initiator, {
         chatEvent: 'joinPrivateChat',
-        data: JSON.stringify({ id: chatId, name: `A chat with ${target}`, grabFocus: true }),
+        data: JSON.stringify({ id: chatId, name: `Chat with ${targetUser.userName}`, grabFocus: true }),
       })
     } catch (err) {
       // This should never happen!
-      console.log(`### Source user for private chat not found, will remove them!`)
+      context.log(`### Source user for private chat not found, will remove them!`)
       await removeChatUser(serviceClient, initiator)
       context.res = { status: 200 }
       context.done()
@@ -155,8 +171,36 @@ module.exports = async function (context, req) {
     }
 
     setTimeout(async () => {
-      await serviceClient.group(chatId).sendToAll(`💬 ${initiator} wants to chat`)
+      await serviceClient.group(chatId).sendToAll(`💬 ${initiatorUser.userName} wants to chat`)
     }, 500)
+  }
+
+  if (eventName === 'userEnterIdle') {
+    const userId = req.body
+    context.log(`### User ${userId} has gone idle`)
+    await serviceClient.sendToAll({
+      chatEvent: 'userIsIdle',
+      data: userId,
+    })
+  }
+
+  if (eventName === 'userExitIdle') {
+    const userId = req.body
+    context.log(`### User ${userId} has returned`)
+    await serviceClient.sendToAll({
+      chatEvent: 'userNotIdle',
+      data: userId,
+    })
+  }
+
+  if (eventName === 'deleteChat') {
+    const chatId = req.body
+    context.log(`### Chat ${chatId} has been deleted`)
+    await state.removeChat(chatId)
+    await serviceClient.sendToAll({
+      chatEvent: 'chatDeleted',
+      data: chatId,
+    })
   }
 
   // Respond with a 200 to the webhook
@@ -166,9 +210,8 @@ module.exports = async function (context, req) {
 
 //
 // Helper to remove user from a chat
-// Deletes a chat when it has no members
 //
-async function leaveChat(serviceClient, userId, chatId) {
+async function leaveChat(userId, chatId) {
   let chat = await state.getChat(chatId)
   if (!chat) {
     return
@@ -181,19 +224,7 @@ async function leaveChat(serviceClient, userId, chatId) {
     }
   }
 
-  // If there are no members, then delete the chat
-  if (Object.keys(chat.members).length <= 0) {
-    console.log(`### Deleting chat ${chatId} with no members!`)
-
-    await serviceClient.sendToAll({
-      chatEvent: 'chatDeleted',
-      data: JSON.stringify(chat),
-    })
-
-    await state.removeChat(chatId)
-  } else {
-    state.upsertChat(chatId, chat)
-  }
+  state.upsertChat(chatId, chat)
 }
 
 //
@@ -212,6 +243,6 @@ async function removeChatUser(serviceClient, userId) {
   // Leave all chats
   for (let chatId in await state.listChats()) {
     console.log('### Calling leaveChat', userId, chatId)
-    await leaveChat(serviceClient, userId, chatId)
+    await leaveChat(userId, chatId)
   }
 }

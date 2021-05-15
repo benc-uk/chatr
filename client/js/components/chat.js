@@ -11,7 +11,7 @@ export default Vue.component('chat', {
     name: String,
     id: String,
     active: Boolean,
-    user: String,
+    user: Object,
     // This is shared with the parent app component
     ws: WebSocket,
   },
@@ -25,10 +25,14 @@ export default Vue.component('chat', {
         case 'message': {
           // Pretty important otherwise we show messages from all chats !
           if (msg.group !== this.id) break
-          if (msg.data.message && msg.data.user) {
-            this.appendChat(`<b>${msg.data.user}:</b> ${msg.data.message}`)
+
+          // User sent messages, i.e. from sendMessage() below
+          if (msg.data.message && msg.data.fromUserName) {
+            this.appendChat(`<b>${msg.data.fromUserName}:</b> ${msg.data.message}`)
             break
           }
+
+          // Other messages from the server etc
           this.appendChat(msg.data)
           break
         }
@@ -64,7 +68,8 @@ export default Vue.component('chat', {
           dataType: 'json',
           data: {
             message: this.message,
-            user: this.user,
+            fromUserId: this.user.userId,
+            fromUserName: this.user.userDetails,
           },
         })
       )

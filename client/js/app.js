@@ -1,6 +1,7 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
-import { toast } from 'https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js'
+
+const MAX_IDLE_TIME = 60
 
 async function startApp() {
   new Vue({
@@ -15,13 +16,19 @@ async function startApp() {
         joinedChats: {},
         // Main WebSocket instance
         ws: null,
-        user: false,
+        // User object which is an instance of SWA clientPrincipal
+        // See https://docs.microsoft.com/en-us/azure/static-web-apps/user-information?tabs=javascript#client-principal-data
+        user: {},
         // Map of chat id to server chat objects, synced with the server
         allChats: {},
         // Map of users to server user objects, synced with the server
         allUsers: {},
+        // Are we running in a SWA
         isAzureStaticWebApp: false,
-        // Used by the modal dialog
+        // Used to handle idle detection
+        idle: false,
+        idleTime: 0,
+        // Used by the ne chat modal dialog
         openNewChatDialog: false,
         newChatName: '',
         error: '',
@@ -29,7 +36,12 @@ async function startApp() {
     },
 
     async beforeMount() {
-      // Get user details
+      // Set up handlers and timer interval for idle time detection
+      document.onmousemove = this.resetIdle
+      document.onkeydown = this.resetIdle
+      setInterval(this.idleChecker, 1000)
+
+      // Get user details from special SWA auth endpoint
       try {
         let userRes = await fetch(`/.auth/me`)
         if (!userRes.ok) {
@@ -42,14 +54,19 @@ async function startApp() {
             document.location.href = 'login.html'
             return
           }
-          this.user = userData.clientPrincipal.userDetails
+          this.user = userData.clientPrincipal
           this.isAzureStaticWebApp = true
         }
       } catch (err) {
-        // When auth endpoint not available, like when local, fallback to a prompt :)
+        // When auth endpoint not available, fallback to a prompt and fake clientPrincipal data
+        // In reality this is not really need anymore as the SWA emulator does a good job
         const userName = prompt('What is your name')
         if (!userName) window.location.href = window.location.href
-        this.user = userName
+        this.user = {
+          userId: utils.uuidv4(),
+          userDetails: userName,
+          identityProvider: 'fake',
+        }
       }
 
       try {
@@ -66,12 +83,23 @@ async function startApp() {
         this.allUsers = data.users
 
         // Get URL & token to connect to Azure Web Pubsub
-        res = await fetch(`/api/getToken?userId=${this.user}`)
+        res = await fetch(`/api/getToken?userId=${this.user.userId}`)
         if (!res.ok) throw `getToken error: ${await res.text()}`
         let token = await res.json()
 
         // Now connect to Azure Web PubSub using the URL we got
         this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
+        // Custom notification event, rather that relying on the system connected event
+        this.ws.onopen = () => {
+          this.ws.send(
+            JSON.stringify({
+              type: 'event',
+              event: 'userConnected',
+              dataType: 'json',
+              data: { userName: this.user.userDetails, userProvider: this.user.identityProvider },
+            })
+          )
+        }
       } catch (err) {
         console.error(`API ERROR: ${err}`)
         this.error = `💩 Failed to get data from the server ${err}, it could be down. You could try refreshing the page 🤷‍♂️`
@@ -84,42 +112,52 @@ async function startApp() {
 
         // System events
         if (msg.type === 'system' && msg.event === 'connected') {
-          toast({
-            message: `Connected to ${evt.origin}`,
-            type: 'is-success',
-            duration: 1500,
-            animate: { in: 'fadeIn', out: 'fadeOut' },
-          })
+          utils.toastMessage(`🔌 Connected to ${evt.origin}`, 'success')
         }
 
         // Server events
         if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
           let chat = JSON.parse(msg.data.data)
-          this.$set(this.allChats, chat.id, { name: chat.name })
+          this.$set(this.allChats, chat.id, chat)
         }
+
         if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {
-          let chat = JSON.parse(msg.data.data)
-          this.$delete(this.allChats, chat.id)
+          let chatId = msg.data.data
+          this.$delete(this.allChats, chatId)
+          if (this.joinedChats[chatId]) {
+            utils.toastMessage(`💥 Chat deleted by owner, you have been removed!`, 'danger')
+            this.onLeaveEvent(chatId)
+          }
         }
+
         if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
-          let userName = msg.data.data
-          this.$set(this.allUsers, userName, {})
+          let user = JSON.parse(msg.data.data)
+          this.$set(this.allUsers, user.userId, user)
         }
+
         if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
           let userName = msg.data.data
           this.$delete(this.allUsers, userName)
         }
+
         if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
           let chat = JSON.parse(msg.data.data)
           if (!chat.grabFocus) {
-            toast({
-              message: `💬 Incoming: ${chat.name}`,
-              type: 'is-info',
-              duration: 2500,
-              animate: { in: 'fadeIn', out: 'fadeOut' },
-            })
+            utils.toastMessage(`💬 Incoming: ${chat.name}`, 'warning')
           }
           this.joinPrivateChat(chat.id, chat.name, chat.grabFocus)
+        }
+
+        if (msg.from === 'server' && msg.data.chatEvent === 'userIsIdle') {
+          let userId = msg.data.data
+          this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: true })
+          utils.toastMessage(`💤 User ${this.allUsers[userId].userName} is now idle`, 'link')
+        }
+
+        if (msg.from === 'server' && msg.data.chatEvent === 'userNotIdle') {
+          let userId = msg.data.data
+          this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: false })
+          utils.toastMessage(`🤸‍♂️ User ${this.allUsers[userId].userName} has returned`, 'link')
         }
       })
     },
@@ -167,7 +205,7 @@ async function startApp() {
       //
       async newPrivateChat(targetUser) {
         // Can't talk to yourself
-        if (targetUser == this.user) return
+        if (targetUser == this.user.userId) return
 
         // Prevent starting chats with users if they are already open
         const openPrivateChats = Object.keys(this.joinedChats).filter((c) => c.startsWith('private_'))
@@ -181,7 +219,7 @@ async function startApp() {
             type: 'event',
             event: 'createPrivateChat',
             dataType: 'json',
-            data: { initiatorUserId: this.user, targetUserId: targetUser },
+            data: { initiatorUserId: this.user.userId, targetUserId: targetUser },
           })
         )
       },
@@ -251,8 +289,8 @@ async function startApp() {
           JSON.stringify({
             type: 'event',
             event: 'leaveChat',
-            dataType: 'text',
-            data: chatId,
+            dataType: 'json',
+            data: { chatId, userName: this.user.userDetails },
           })
         )
 
@@ -260,6 +298,56 @@ async function startApp() {
         if (firstChat) {
           firstChat.active = true
         }
+      },
+
+      //
+      // Used to detect idle time and reset it on any activity
+      //
+      resetIdle() {
+        if (this.idle) {
+          this.ws.send(
+            JSON.stringify({
+              type: 'event',
+              event: 'userExitIdle',
+              dataType: 'text',
+              data: this.user.userId,
+            })
+          )
+        }
+        this.idle = false
+        this.idleTime = 0
+      },
+
+      //
+      // Called every 1 second to check for idle time
+      //
+      idleChecker() {
+        this.idleTime += 1
+        if (this.idleTime > MAX_IDLE_TIME && !this.idle) {
+          this.idle = true
+          this.ws.send(
+            JSON.stringify({
+              type: 'event',
+              event: 'userEnterIdle',
+              dataType: 'text',
+              data: this.user.userId,
+            })
+          )
+        }
+      },
+
+      //
+      // Remove a chat if you are the owner
+      //
+      deleteChat(chatId) {
+        this.ws.send(
+          JSON.stringify({
+            type: 'event',
+            event: 'deleteChat',
+            dataType: 'text',
+            data: chatId,
+          })
+        )
       },
     },
   })

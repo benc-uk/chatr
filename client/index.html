@@ -29,7 +29,6 @@
     <section class="section" id="app">
       <div class="notification is-danger" v-if="error">{{ error }}</div>
       <div class="columns" v-if="ws">
-
         <!-- box for group chats -->
         <div class="column">
           <div class="title is-4">
@@ -39,8 +38,16 @@
 
           <aside class="menu chatMenu box">
             <ul class="menu-list">
-              <li v-for="(chat, chatId) in allChats" @click="joinChat(chatId, chat.name)">
-                <a class="animate__animated animate__bounceIn">{{ chat.name }}</a>
+              <li v-for="(chat, chatId) in allChats" >
+                <a class="animate__animated animate__bounceIn" @click.stop="joinChat(chatId, chat.name)">
+                  {{ chat.name }}
+                  <button v-if="chat.owner == user.userId" class="button is-small is-pulled-right is-rounded is-danger" @click.stop="deleteChat(chatId)" style="top: -0.2rem">
+                    <span class="icon is-small">
+                      <i class="fas fa-trash-alt"></i>
+                    </span>
+                  </button>
+                </a>
+
               </li>
             </ul>
           </aside>
@@ -57,9 +64,15 @@
 
           <aside class="menu chatMenu box">
             <ul class="menu-list">
-              <li v-for="(onlineUser, userName) in allUsers" @click="newPrivateChat(userName)">
-                <a class="animate__animated animate__bounceIn">
-                  <span v-if="userName == user"><i class="fas fa-user"></i>&nbsp;</span>{{ userName }}
+              <li v-for="(onlineUser, userId) in allUsers" @click="newPrivateChat(userId)">
+                <a class="animate__animated animate__bounceIn" :class="{ 'userSelf': userId == user.userId, 'userAway': onlineUser.idle }">
+                  <span>
+                    <i class="fab fa-twitter" v-if="onlineUser.userProvider == 'twitter'"></i>
+                    <i class="fab fa-microsoft" v-if="onlineUser.userProvider == 'aad'"></i>
+                    <i class="fab fa-github-alt" v-if="onlineUser.userProvider == 'github'"></i>
+                    <i class="fas fa-poo" v-if="onlineUser.userProvider == 'fake'"></i>
+                  </span>
+                  &nbsp;{{ onlineUser.userName }} <span>&nbsp;&nbsp;<i class="fas fa-bed" v-if="onlineUser.idle"></i></span>
                 </a>
               </li>
             </ul>
@@ -119,6 +132,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.6, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.7, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>
