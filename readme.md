@@ -24,9 +24,9 @@ Use cases & key features:
 
 - Sign-in with Microsoft, Twitter or GitHub accounts
 - Realtime chat with users
-- Shared group chats, which have an owner who that delete the chat
+- Shared group chats, only the creator can remove the chat
 - Detects where users are idle and away from keyboard (default is one minute)
-- Private user to user chats
+- Private 'user to user' chats, with notifications and popups
 
 # Screenshot
 

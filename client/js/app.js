@@ -133,11 +133,13 @@ async function startApp() {
         if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
           let user = JSON.parse(msg.data.data)
           this.$set(this.allUsers, user.userId, user)
+          utils.toastMessage(`🤩 ${user.userName} has just joined`, 'success')
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
           let userName = msg.data.data
           this.$delete(this.allUsers, userName)
+          utils.toastMessage(`💨 ${user.userName} has left or logged off`, 'warning')
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
