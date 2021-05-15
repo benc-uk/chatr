@@ -1,6 +1,0 @@
-{
-  "name": "chatr-static-app-api",
-  "version": "0.0.1",
-  "description": "Micro API needed for discovery of the real API service",
-  "author": "Ben Coleman"
-}
