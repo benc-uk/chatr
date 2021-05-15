@@ -137,8 +137,9 @@ async function startApp() {
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
-          let userName = msg.data.data
-          this.$delete(this.allUsers, userName)
+          let userId = msg.data.data
+          let userName = this.allUsers[userId].userName
+          this.$delete(this.allUsers, userId)
           utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
         }
 
