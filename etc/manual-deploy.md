@@ -1,5 +1,7 @@
 # How to deploy to static web apps manually
 
+This is **not** supported, the StaticSitesClient command is undocumented, but it works
+
 ```
 export SWA_TOKEN="blah123"
 ```
