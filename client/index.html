@@ -25,8 +25,14 @@
   </head>
 
   <body>
+    
     <!-- Main app -->
     <section class="section" id="app">
+      <!-- display spinner if we're not online yet -->
+      <div v-if="!online || !user || !ws" class="loaderOverlay">
+        <div class="loader">Loading...</div>
+      </div>
+      
       <div class="notification is-danger" v-if="error">{{ error }}</div>
       <div class="columns" v-if="ws">
         <!-- box for group chats -->
@@ -132,6 +138,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.7, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.0.8, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>

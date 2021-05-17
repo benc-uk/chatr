@@ -16,6 +16,8 @@ async function startApp() {
         joinedChats: {},
         // Main WebSocket instance
         ws: null,
+        // Toggle to see if user is online
+        online: false,
         // User object which is an instance of SWA clientPrincipal
         // See https://docs.microsoft.com/en-us/azure/static-web-apps/user-information?tabs=javascript#client-principal-data
         user: {},
@@ -59,11 +61,11 @@ async function startApp() {
         }
       } catch (err) {
         // When auth endpoint not available, fallback to a prompt and fake clientPrincipal data
-        // In reality this is not really need anymore as the SWA emulator does a good job
-        const userName = prompt('What is your name')
+        // In reality this is not really need anymore as we use the SWA emulator
+        const userName = prompt('Please set your user name')
         if (!userName) window.location.href = window.location.href
         this.user = {
-          userId: utils.uuidv4(),
+          userId: utils.hashString(userName),
           userDetails: userName,
           identityProvider: 'fake',
         }
@@ -112,7 +114,7 @@ async function startApp() {
 
         // System events
         if (msg.type === 'system' && msg.event === 'connected') {
-          utils.toastMessage(`🔌 Connected to ${evt.origin}`, 'success')
+          utils.toastMessage(`🔌 Connected to ${evt.origin.replace('wss://', '')}`, 'success')
         }
 
         // Server events
@@ -131,9 +133,14 @@ async function startApp() {
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
-          let user = JSON.parse(msg.data.data)
-          this.$set(this.allUsers, user.userId, user)
-          utils.toastMessage(`🤩 ${user.userName} has just joined`, 'success')
+          let newUser = JSON.parse(msg.data.data)
+          // If the new user is ourselves, that means we're connected and online
+          if (newUser.userId == this.user.userId) {
+            this.online = true
+          } else {
+            utils.toastMessage(`🤩 ${newUser.userName} has just joined`, 'success')
+          }
+          this.$set(this.allUsers, newUser.userId, newUser)
         }
 
         if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
