@@ -5,7 +5,7 @@ It provides persistent group chats, user to user private chats, a user list, idl
 
 It is built on several Azure technologies, including: _Web PubSub, Static Web Apps and \_Table Storage_
 
-> 👁‍🗨 Note. This is a personal side project, created to aid learning while building something interesting. The code should not be considered 'best practice' or representing a set of recommendations for using Azure Web PubSub, however it does represent the output of getting something working!
+> 👁‍🗨 Note. This was created as a personal project, created to aid learning while building something interesting. The code comes with all the caveats you might expect from such a project.
 
 ![](https://img.shields.io/github/license/benc-uk/chatr)
 ![](https://img.shields.io/github/last-commit/benc-uk/chatr)
@@ -58,7 +58,7 @@ The source for this is found in **api/** and consists of a Node.js Azure Functio
 
 There are four HTTP functions all served from the default `/api/` path
 
-- `eventHandler` - Webhook receiver for "upstream" events sent from Azure Web PubSub service, contains the majority of application logic. Not called by the client.
+- `eventHandler` - Webhook receiver for "upstream" events sent from Azure Web PubSub service, contains the majority of application logic. Not called directly by the client, only Azure WebPub Sub.
 - `getToken` - Called by the client to get an access token and URL to connect via WebSockets to the Azure Web PubSub service. Must be called with userId in the URL query, e.g. GET `/api/getToken?userId={user}`
 - `getUsers` - Returns a list of signed in users, note the route for this function is `/api/users`
 - `getChats` - Returns a list of active group chats, note the route for this function is `/api/chats`
@@ -73,27 +73,41 @@ There is two way message flow between clients and the server via [Azure Web PubS
 
 Notes:
 
-- Chat IDs are simply randomly generated GUIDs, these correspond to the names of "groups" in the subprotocol.
+- Chat IDs are simply randomly generated GUIDs, these correspond to "groups" in the subprotocol.
 - Private chats are a special case, they are not persisted in state, and they do not trigger **chatCreated** events. Also the user doesn't issue a **joinChat** event to join them, that is handled by the server as a kind of "push" to the clients.
 - User IDs are simply strings which are considered to be unique, this could be improved, e.g. with prefixing.
 
 ### Client Messaging
 
-Chat messages sent from the client use `sendToGroup` and a custom JSON payload with two fields `message` and `user`, these messages are relayed client to client, the server is never notified of them:
+Events & chat are sent using the _json.webpubsub.azure.v1_ subprotocol
 
-```
+Chat messages sent from the client use `sendToGroup` and a custom JSON payload with three fields `message`, `fromUserId` & `fromUserName`, these messages are relayed client to client by Azure Web PubSub, the server is never notified of them:
+
+```json
 {
   type: 'sendToGroup',
   group: <chatId>,
   dataType: 'json',
   data: {
     message: <message text>,
-    user: <userId of sender>,
+    fromUserId: <userId>,
+    fromUserName: <userName>,
   },
 }
 ```
 
-Events from the the client are sent as `event` type messages using the _json.webpubsub.azure.v1_ protocol, the events sent are:
+Events destined for the backend server are sent as WebSocket messages from the client via the same subprotocol with the `event` type, and an application specific sub-type, e.g.
+
+```json
+{
+  type: 'event',
+  event: 'joinChat',
+  dataType: 'text',
+  data: chatId,
+}
+```        
+
+The types of events are:
 
 - **createChat** - Request the server you want to create a group chat
 - **createPrivateChat** - Request the server you want to create a private chat
@@ -103,13 +117,13 @@ Events from the the client are sent as `event` type messages using the _json.web
 - **userEnterIdle** - Let the server know user is now idle
 - **userExitIdle** - Let the server know user is no longer idle
 
-The `eventHandler` function has cases for each of these user events, along with handlers for connection & disconnection system events.
+The backend API `eventHandler` function has cases for each of these user events, along with handlers for connection & disconnection system events.
 
 ### Server Messaging
 
 Messages sent from the server have a custom Chatr app specific payload as follows:
 
-```
+```json
 {
   chatEvent: <eventType>,
   data: <JSON object type dependant>
@@ -171,7 +185,7 @@ Example of a chat data entity
 
 ### Users Table
 
-Users are stored as entities with the fields (columns) described below. As there are no nested fields, there is no need to store a JSON string. The PartitionKey is not used and hardcoded to a string "chatr".
+Users are stored as entities with the fields (columns) described below. As there are no nested fields, there is no need to encode as a JSON string. Again the PartitionKey is not used and hardcoded to a string "chatr".
 
 - **PartitionKey**: "chatr"
 - **RowKey**: The `userId` field returned from Static Web Apps auth endpoint
@@ -204,13 +218,15 @@ Deployment is slightly complex due to the number of components and the configura
 
 ## Running Locally
 
-This is possible but it requires some juggling, and some amount of manual config
+This is possible but requires a little effort as the Azure Web PubSub service needs to be able call the HTTP endpoint on your location machine, so a tunnel has employed.
 
 When running locally the Static Web Apps CLI is used and this provides a fake user authentication endpoint for us.
 
-- Deploy _Azure Storage_ account, get name and access key.
-- Deploy _Azure Web Pub Sub_, get connection string.
-- Copy `api/local.settings.sample.json` to `api/local.settings.json` and edit the required setting values.
+A summary of the steps is:
+
+- Deploy an _Azure Storage_ account, get name and access key.
+- Deploy an _Azure Web Pub Sub_ instance, get connection string from the 'Keys' page.
+- Copy `api/local.settings.sample.json` to `api/local.settings.json` and edit the required settings values.
 - Start a localhost tunnel service such as **ngrok** or **loophole**. The tunnel should expose port 7071 over HTTP.  
   I use [loophole](https://loophole.cloud/) as it allows me to set a custom host & DNS name, e.g.
   - `loophole http 7071 --hostname chatr`
@@ -223,4 +239,4 @@ When running locally the Static Web Apps CLI is used and this provides a fake us
 
 # Known Issues
 
-- Won't run in Firefox as top level await is not supported
+- Won't run in Firefox as top level await is not yet supported
