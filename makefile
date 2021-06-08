@@ -7,6 +7,7 @@ GITHUB_TOKEN ?=
 
 # Don't change
 SRC_DIR := api
+CLIENT_DIR := client
 
 .PHONY: help run deploy lint lint-fix
 .DEFAULT_GOAL := help
@@ -17,6 +18,7 @@ help:  ## 💬 This help message
 
 lint: $(SRC_DIR)/node_modules  ## 🔎 Lint & format, will not fix but sets exit code on error 
 	cd $(SRC_DIR); npm run lint
+	eslint $(CLIENT_DIR)
 
 lint-fix: $(SRC_DIR)/node_modules  ## 📜 Lint & format, will try to fix errors and modify code
 	cd $(SRC_DIR); npm run lint-fix

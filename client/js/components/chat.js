@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 export default Vue.component('chat', {
   data() {
     return {
@@ -50,6 +51,7 @@ export default Vue.component('chat', {
     appendChat(text) {
       this.chatText += `${text}<br/>`
 
+      // eslint-disable-next-line no-undef
       Vue.nextTick(() => {
         if (this.$refs['chatBox']) {
           this.$refs['chatBox'].scrollTop = this.$refs['chatBox'].scrollHeight

@@ -2,10 +2,13 @@
   "root": true,
   "env": {
     "es6": true,
-    "node": true
+    "browser": true
   },
   "extends": ["eslint:recommended"],
-  "parserOptions": { "ecmaVersion": 2020 },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
   "rules": {
     "no-var": "error"
   }
