@@ -83,7 +83,7 @@ Events & chat are sent using the _json.webpubsub.azure.v1_ subprotocol
 
 Chat messages sent from the client use `sendToGroup` and a custom JSON payload with three fields `message`, `fromUserId` & `fromUserName`, these messages are relayed client to client by Azure Web PubSub, the server is never notified of them:
 
-```json
+```go
 {
   type: 'sendToGroup',
   group: <chatId>,
@@ -98,12 +98,12 @@ Chat messages sent from the client use `sendToGroup` and a custom JSON payload w
 
 Events destined for the backend server are sent as WebSocket messages from the client via the same subprotocol with the `event` type, and an application specific sub-type, e.g.
 
-```json
+```go
 {
   type: 'event',
   event: 'joinChat',
   dataType: 'text',
-  data: chatId,
+  data: <chatId>,
 }
 ```        
 
@@ -123,7 +123,7 @@ The backend API `eventHandler` function has cases for each of these user events,
 
 Messages sent from the server have a custom Chatr app specific payload as follows:
 
-```json
+```go
 {
   chatEvent: <eventType>,
   data: <JSON object type dependant>
