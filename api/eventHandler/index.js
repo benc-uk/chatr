@@ -29,7 +29,7 @@ module.exports = async function (context, req) {
     context.log(`### Webhook validation was called for ${req.headers['webhook-request-origin']}`)
     context.res = {
       headers: {
-        'WebHook-Allowed-Origin': req.headers['webhook-request-origin'],
+        'webhook-allowed-origin': req.headers['webhook-request-origin'],
       },
       status: 200,
     }
