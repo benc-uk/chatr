@@ -37,27 +37,27 @@ footer {
   color: #c0bdba !important;
 }
 
-.bubbleWrap {
+.chatMsgRow {
   width: 100%;
   display: flex;
 }
 
-.chatSelf {
-  justify-content: flex-end;
-}
-
-.chatBubble {
+.chatMsg {
   max-width: 70%;
 }
 
-.chatBubbleTitle {
+.chatMsgTitle {
   font-size: 0.6rem;
   font-weight: bold;
   color: hsl(204, 86%, 53%);
 }
 
-.chatBubbleBody {
+.chatMsgBody {
   font-size: 0.9rem;
+}
+
+.chatRight {
+  justify-content: flex-end;
 }
 
 .loaderOverlay {

@@ -4,10 +4,9 @@ import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js
 export default Vue.component('chat', {
   data() {
     return {
-      chatText: '',
       message: '',
       connected: false,
-      chatBubbles: [],
+      chats: [],
     }
   },
 
@@ -16,8 +15,7 @@ export default Vue.component('chat', {
     id: String,
     active: Boolean,
     user: Object,
-    // This is shared with the parent app component
-    ws: WebSocket,
+    ws: WebSocket, // This is shared with the parent app component
   },
 
   async mounted() {
@@ -32,13 +30,12 @@ export default Vue.component('chat', {
 
           // User sent messages, i.e. from sendMessage() below
           if (msg.data.message && msg.data.fromUserName) {
-            //this.appendChat(`<b>${msg.data.fromUserName}:</b> ${msg.data.message}`)
             this.appendChat(msg.data.message, msg.data.fromUserName)
             break
           }
 
           // Other messages from the server etc
-          this.appendChat(msg.data, '')
+          this.appendChat(msg.data)
           break
         }
       }
@@ -52,10 +49,8 @@ export default Vue.component('chat', {
   },
 
   methods: {
-    appendChat(text, from) {
-      //this.chatText += `${text}<br/>`
-
-      this.chatBubbles.push({
+    appendChat(text, from = null) {
+      this.chats.push({
         text,
         from,
         time: new Date(),
@@ -100,10 +95,10 @@ export default Vue.component('chat', {
     </div>
 
     <div class="chatBox" contentEditable="false" readonly ref="chatBox">
-      <div v-for="chatBubble of chatBubbles" class="bubbleWrap" :class="{chatSelf: user.userDetails == chatBubble.from}"> 
-        <div class="card m-3 p-2 chatBubble">
-          <div class="chatBubbleTitle text-info" v-if="chatBubble.from" >{{ chatBubble.from }}</div>
-          <div class="chatBubbleBody" v-html="chatBubble.text"></div>
+      <div v-for="chat of chats" class="chatMsgRow" :class="{chatRight: user.userDetails == chat.from}"> 
+        <div class="card m-3 p-2 chatMsg">
+          <div class="chatMsgTitle text-info" v-if="chat.from">{{ chat.from }}</div>
+          <div class="chatMsgBody" v-html="chat.text"></div>
         </div>
       </div>
     </div> 

@@ -1,4 +1,4 @@
-import { toast } from 'https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js'
+import { toast } from 'https://cdn.jsdelivr.net/npm/bulma-toast@2.4.1/dist/bulma-toast.esm.js'
 
 export default {
   uuidv4() {
@@ -14,7 +14,7 @@ export default {
       message: msg,
       type: `is-${type}`,
       duration: 1500,
-      position: 'top-center',
+      position: 'bottom-center',
       animate: { in: 'fadeIn', out: 'fadeOut' },
     })
   },

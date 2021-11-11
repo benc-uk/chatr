@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatr App</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 
@@ -25,12 +25,13 @@
     <!-- Main app -->
     <section class="section" id="app">
       <!-- display spinner if we're not online yet -->
-      <div v-if="!online || !user || !ws" class="loaderOverlay">
+      <div v-if="(!online || !user || !ws) && !error" class="loaderOverlay">
         <div class="loader">Loading...</div>
       </div>
       
       <div class="notification is-danger" v-if="error">{{ error }}</div>
-      <div class="columns" v-if="ws">
+
+      <div class="columns" v-if="ws && !error">
         <!-- box for group chats -->
         <div class="column">
           <div class="title is-4">
@@ -134,6 +135,6 @@
 
     </section>
 
-    <footer>Chatr v0.0.9, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
+    <footer>Chatr v0.1.0, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a></footer>
   </body>
 </html>
