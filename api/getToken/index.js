@@ -25,7 +25,7 @@ module.exports = async function (context, req) {
   }
   context.log(`### User: ${userId} requested a token to access hub: ${HUB}`)
 
-  let token = await client.getAuthenticationToken({
+  let token = await client.getClientAccessToken({
     userId: userId,
     roles: ['webpubsub.sendToGroup', 'webpubsub.joinLeaveGroup'],
   })
