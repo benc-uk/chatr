@@ -8,7 +8,6 @@ resource storageAcct 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   
   sku: {
     name: 'Standard_LRS'
-    tier: 'Standard'
   }
 }
 
