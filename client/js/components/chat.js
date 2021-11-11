@@ -1,3 +1,5 @@
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
+
 // eslint-disable-next-line no-undef
 export default Vue.component('chat', {
   data() {

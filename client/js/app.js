@@ -1,5 +1,6 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
 
 const MAX_IDLE_TIME = 60
 
