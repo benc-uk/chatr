@@ -9,6 +9,7 @@
 
 const { WebPubSubServiceClient } = require('@azure/web-pubsub')
 const state = require('../state')
+const crypto = require('crypto')
 
 const CONN_STR = process.env.PUBSUB_CONNECTION_STRING
 const HUB = process.env.PUBSUB_HUB
@@ -28,7 +29,7 @@ module.exports = async function (context, req) {
     context.log(`### Webhook validation was called for ${req.headers['webhook-request-origin']}`)
     context.res = {
       headers: {
-        'webHook-allowed-origin': req.headers['webhook-request-origin'],
+        'webhook-allowed-origin': req.headers['webhook-request-origin'],
       },
       status: 200,
     }
@@ -38,8 +39,14 @@ module.exports = async function (context, req) {
 
   // If we're here, then it's a POST request for a real event
 
-  const serviceClient = new WebPubSubServiceClient(CONN_STR, HUB)
+  // Check signature to prevent spoofing
+  if (!validateSignature(req.headers['ce-connectionid'], req.headers['ce-signature'])) {
+    context.res = { status: 401, body: 'ERROR! Cloud event signature validation failed' }
+    context.done()
+    return
+  }
 
+  const serviceClient = new WebPubSubServiceClient(CONN_STR, HUB)
   const userId = req.headers['ce-userid']
   const eventName = req.headers['ce-eventname']
 
@@ -244,5 +251,31 @@ async function removeChatUser(serviceClient, userId) {
   for (let chatId in await state.listChats()) {
     console.log('### Calling leaveChat', userId, chatId)
     await leaveChat(userId, chatId)
+  }
+}
+
+//
+// Simple validation of the cloud event signature
+// See: https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/azure-web-pubsub/reference-cloud-events.md#attributes
+//
+function validateSignature(connectionId, signature) {
+  try {
+    // Use the key from the connection string to validate the signature
+    const key = CONN_STR.split(';')[1].replace('AccessKey=', '')
+    const hmac = crypto.createHmac('sha256', key)
+
+    // The connectionId in 'ce-connectionid' header is the data we want to sign
+    hmac.update(connectionId)
+
+    // Simply check the hex digest is present in the signature
+    if (signature.includes(hmac.digest('hex'))) {
+      return true
+    }
+
+    console.log('### Error! Cloud event failed signature validation, SHA not matched')
+    return false
+  } catch (err) {
+    console.log(`### Error! Cloud event failed signature validation, due to error: ${err}`)
+    return false
   }
 }

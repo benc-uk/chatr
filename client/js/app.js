@@ -1,5 +1,6 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
 
 const MAX_IDLE_TIME = 60
 
@@ -261,6 +262,9 @@ new Vue({
     joinPrivateChat(chatId, chatName, grabFocus) {
       // Skip if we are already joined
       if (this.joinedChats[chatId]) return
+
+      // If grabbing focus means we should deactivate current chat
+      if (grabFocus) this.deactivateChats()
       this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 })
     },
 

@@ -4,7 +4,7 @@
 // Ben Coleman, 2021
 //
 
-const { TableServiceClient, TablesSharedKeyCredential, TableClient } = require('@azure/data-tables')
+const { TableServiceClient, AzureNamedKeyCredential, TableClient } = require('@azure/data-tables')
 
 const account = process.env.STORAGE_ACCOUNT_NAME
 const accountKey = process.env.STORAGE_ACCOUNT_KEY
@@ -12,7 +12,7 @@ const chatsTable = 'chats'
 const usersTable = 'users'
 const partitionKey = 'chatr'
 
-const credential = new TablesSharedKeyCredential(account, accountKey)
+const credential = new AzureNamedKeyCredential(account, accountKey)
 const serviceClient = new TableServiceClient(`https://${account}.table.core.windows.net`, credential)
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)

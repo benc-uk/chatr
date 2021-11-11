@@ -3,7 +3,7 @@
 This is a demonstration & sample application designed to be a simple multi-user web based chat system.  
 It provides persistent group chats, user to user private chats, a user list, idle (away from keyboard) detection and several other features.
 
-It is built on several Azure technologies, including: _Web PubSub, Static Web Apps and \_Table Storage_
+It is built on several Azure technologies, including: _Web PubSub, Static Web Apps_ and _Table Storage_
 
 > 👁‍🗨 Note. This was created as a personal project, created to aid learning while building something interesting. The code comes with all the caveats you might expect from such a project.
 
@@ -45,7 +45,7 @@ The source for this is found in **client/** and consists of a static standalone 
 Some notes:
 
 - ES6 modules are used so the various JS files can use import/export without the need to bundle.
-- Vue.js is used as a browser side library loaded from CDN with `<script>` tag, this is an elegant & lightweight approach supported by modern browsers, rather than the usual vue-cli style app which requires Node and webpack etc.
+- Vue.js is used as a browser side library loaded from CDN as a ESM module, this is an elegant & lightweight approach supported by modern browsers, rather than the usual vue-cli style app which requires Node and webpack etc.
 - `client/js/app.js` shows how to create a Vue.js app with child components using this approach. The majority of client logic is here.
 - `client/js/components/chat.js` is a Vue.js component used to host each chat tab in the application
 - The special `.auth/` endpoint provided by Static Web Apps is used to sign users in and fetch their user details, such as userId.

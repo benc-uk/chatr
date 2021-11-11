@@ -1,6 +1,6 @@
 {
   "name": "chatr-serverless-api",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Serverless API and event handler for Chatr",
   "scripts": {
     "start": "swa start ../client --api . --swa-config-location ../client",
@@ -9,11 +9,11 @@
   },
   "author": "",
   "dependencies": {
-    "@azure/data-tables": "^12.0.0-beta.2",
-    "@azure/web-pubsub": "^1.0.0-beta.1"
+    "@azure/data-tables": "^12.1.2",
+    "@azure/web-pubsub": "^1.0.0-beta.4"
   },
   "devDependencies": {
-    "eslint": "^7.25.0",
-    "prettier": "^2.2.1"
+    "eslint": "^8.2.0",
+    "prettier": "^2.4.1"
   }
 }
