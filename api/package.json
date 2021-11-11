@@ -1,6 +1,6 @@
 {
   "name": "chatr-serverless-api",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Serverless API and event handler for Chatr",
   "scripts": {
     "start": "swa start ../client --api . --swa-config-location ../client",
