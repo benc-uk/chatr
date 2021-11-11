@@ -6,7 +6,7 @@ param repoUrl string
 @secure()
 param repoToken string
 
-resource staticApp 'Microsoft.Web/staticSites@2020-12-01' = {
+resource staticApp 'Microsoft.Web/staticSites@2021-02-01' = {
   name: name
   location: location
 

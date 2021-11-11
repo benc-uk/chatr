@@ -37,6 +37,29 @@ footer {
   color: #c0bdba !important;
 }
 
+.chatMsgRow {
+  width: 100%;
+  display: flex;
+}
+
+.chatMsg {
+  max-width: 70%;
+}
+
+.chatMsgTitle {
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: hsl(204, 86%, 53%);
+}
+
+.chatMsgBody {
+  font-size: 0.9rem;
+}
+
+.chatRight {
+  justify-content: flex-end;
+}
+
 .loaderOverlay {
   position: absolute;
   top: 0;

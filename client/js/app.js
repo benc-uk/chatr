@@ -93,6 +93,15 @@ new Vue({
 
       // Now connect to Azure Web PubSub using the URL we got
       this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
+
+      // Both of these handle error situations
+      this.ws.onerror = (evt) => {
+        this.error = `WebSocket error ${evt.message}`
+      }
+      this.ws.onclose = (evt) => {
+        this.error = `WebSocket closed, code: ${evt.code}`
+      }
+
       // Custom notification event, rather that relying on the system connected event
       this.ws.onopen = () => {
         this.ws.send(
@@ -123,6 +132,11 @@ new Vue({
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
         let chat = JSON.parse(msg.data.data)
         this.$set(this.allChats, chat.id, chat)
+
+        this.$nextTick(() => {
+          const chatList = this.$refs.chatList
+          chatList.scrollTop = chatList.scrollHeight
+        })
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {

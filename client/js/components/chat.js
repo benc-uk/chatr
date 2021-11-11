@@ -4,9 +4,9 @@ import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js
 export default Vue.component('chat', {
   data() {
     return {
-      chatText: '',
       message: '',
       connected: false,
+      chats: [],
     }
   },
 
@@ -15,8 +15,7 @@ export default Vue.component('chat', {
     id: String,
     active: Boolean,
     user: Object,
-    // This is shared with the parent app component
-    ws: WebSocket,
+    ws: WebSocket, // This is shared with the parent app component
   },
 
   async mounted() {
@@ -31,7 +30,7 @@ export default Vue.component('chat', {
 
           // User sent messages, i.e. from sendMessage() below
           if (msg.data.message && msg.data.fromUserName) {
-            this.appendChat(`<b>${msg.data.fromUserName}:</b> ${msg.data.message}`)
+            this.appendChat(msg.data.message, msg.data.fromUserName)
             break
           }
 
@@ -50,8 +49,12 @@ export default Vue.component('chat', {
   },
 
   methods: {
-    appendChat(text) {
-      this.chatText += `${text}<br/>`
+    appendChat(text, from = null) {
+      this.chats.push({
+        text,
+        from,
+        time: new Date(),
+      })
 
       // eslint-disable-next-line no-undef
       Vue.nextTick(() => {
@@ -91,6 +94,13 @@ export default Vue.component('chat', {
       <button class="button is-warning" @click="$emit('leave', id)"><i class="far fa-times-circle"></i><span class="is-hidden-mobile">&nbsp; Leave</span></button>
     </div>
 
-    <div class="chatBox" contentEditable="false" readonly v-html="chatText" ref="chatBox"></div> 
+    <div class="chatBox" contentEditable="false" readonly ref="chatBox">
+      <div v-for="chat of chats" class="chatMsgRow" :class="{chatRight: user.userDetails == chat.from}"> 
+        <div class="card m-3 p-2 chatMsg">
+          <div class="chatMsgTitle text-info" v-if="chat.from">{{ chat.from }}</div>
+          <div class="chatMsgBody" v-html="chat.text"></div>
+        </div>
+      </div>
+    </div> 
   </div>`,
 })

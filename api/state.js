@@ -12,14 +12,14 @@ const chatsTable = 'chats'
 const usersTable = 'users'
 const partitionKey = 'chatr'
 
+if (!account || !accountKey) {
+  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
+}
+
 const credential = new AzureNamedKeyCredential(account, accountKey)
 const serviceClient = new TableServiceClient(`https://${account}.table.core.windows.net`, credential)
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)
-
-if (!account || !accountKey) {
-  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
-}
 
 // ==============================================================
 // Create tables and absorb errors if they already exist
@@ -79,7 +79,10 @@ async function listChats() {
   let chatList = chatTableClient.listEntities()
 
   for await (const chat of chatList) {
-    chatsResp[chat.rowKey] = JSON.parse(chat.data)
+    let chatObj = JSON.parse(chat.data)
+    // Timestamp only used by cleanup script
+    chatObj.timestamp = chat.timestamp
+    chatsResp[chat.rowKey] = chatObj
   }
   return chatsResp
 }
