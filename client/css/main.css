@@ -37,6 +37,29 @@ footer {
   color: #c0bdba !important;
 }
 
+.bubbleWrap {
+  width: 100%;
+  display: flex;
+}
+
+.chatSelf {
+  justify-content: flex-end;
+}
+
+.chatBubble {
+  max-width: 70%;
+}
+
+.chatBubbleTitle {
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: hsl(204, 86%, 53%);
+}
+
+.chatBubbleBody {
+  font-size: 0.9rem;
+}
+
 .loaderOverlay {
   position: absolute;
   top: 0;

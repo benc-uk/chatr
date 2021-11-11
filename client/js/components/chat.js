@@ -7,6 +7,7 @@ export default Vue.component('chat', {
       chatText: '',
       message: '',
       connected: false,
+      chatBubbles: [],
     }
   },
 
@@ -31,12 +32,13 @@ export default Vue.component('chat', {
 
           // User sent messages, i.e. from sendMessage() below
           if (msg.data.message && msg.data.fromUserName) {
-            this.appendChat(`<b>${msg.data.fromUserName}:</b> ${msg.data.message}`)
+            //this.appendChat(`<b>${msg.data.fromUserName}:</b> ${msg.data.message}`)
+            this.appendChat(msg.data.message, msg.data.fromUserName)
             break
           }
 
           // Other messages from the server etc
-          this.appendChat(msg.data)
+          this.appendChat(msg.data, '')
           break
         }
       }
@@ -50,8 +52,14 @@ export default Vue.component('chat', {
   },
 
   methods: {
-    appendChat(text) {
-      this.chatText += `${text}<br/>`
+    appendChat(text, from) {
+      //this.chatText += `${text}<br/>`
+
+      this.chatBubbles.push({
+        text,
+        from,
+        time: new Date(),
+      })
 
       // eslint-disable-next-line no-undef
       Vue.nextTick(() => {
@@ -91,6 +99,13 @@ export default Vue.component('chat', {
       <button class="button is-warning" @click="$emit('leave', id)"><i class="far fa-times-circle"></i><span class="is-hidden-mobile">&nbsp; Leave</span></button>
     </div>
 
-    <div class="chatBox" contentEditable="false" readonly v-html="chatText" ref="chatBox"></div> 
+    <div class="chatBox" contentEditable="false" readonly ref="chatBox">
+      <div v-for="chatBubble of chatBubbles" class="bubbleWrap" :class="{chatSelf: user.userDetails == chatBubble.from}"> 
+        <div class="card m-3 p-2 chatBubble">
+          <div class="chatBubbleTitle text-info" v-if="chatBubble.from" >{{ chatBubble.from }}</div>
+          <div class="chatBubbleBody" v-html="chatBubble.text"></div>
+        </div>
+      </div>
+    </div> 
   </div>`,
 })

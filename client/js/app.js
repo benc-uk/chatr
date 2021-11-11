@@ -123,6 +123,11 @@ new Vue({
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
         let chat = JSON.parse(msg.data.data)
         this.$set(this.allChats, chat.id, chat)
+
+        this.$nextTick(() => {
+          const chatList = this.$refs.chatList
+          chatList.scrollTop = chatList.scrollHeight
+        })
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {

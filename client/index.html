@@ -38,7 +38,7 @@
             <button @click="newChat()" class="button is-info is-pulled-right"><i class="fas fa-comment-dots"></i>&nbsp; New Chat</button>
           </div>
 
-          <aside class="menu chatMenu box">
+          <aside class="menu chatMenu box" ref="chatList">
             <ul class="menu-list">
               <li v-for="(chat, chatId) in allChats" >
                 <a class="animate__animated animate__bounceIn" @click.stop="joinChat(chatId, chat.name)">
