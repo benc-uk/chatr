@@ -3,7 +3,7 @@ param name string = 'chatr'
 param sku string = 'Free_F1'
 param eventHandlerUrl string
 
-resource pubsub 'Microsoft.SignalRService/webPubSub@2021-04-01-preview' = {
+resource pubsub 'Microsoft.SignalRService/webPubSub@2021-09-01-preview' = {
   name: name
   location: location
 
