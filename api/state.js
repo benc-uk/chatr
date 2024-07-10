@@ -4,7 +4,8 @@
 // Ben Coleman, 2021
 //
 
-const { TableServiceClient, AzureNamedKeyCredential, TableClient } = require('@azure/data-tables')
+const { TableServiceClient, TableClient } = require('@azure/data-tables')
+const { DefaultAzureCredential } = require('@azure/identity')
 
 const account = process.env.STORAGE_ACCOUNT_NAME
 const accountKey = process.env.STORAGE_ACCOUNT_KEY
@@ -16,7 +17,7 @@ if (!account || !accountKey) {
   console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
 }
 
-const credential = new AzureNamedKeyCredential(account, accountKey)
+const credential = new DefaultAzureCredential()
 const serviceClient = new TableServiceClient(`https://${account}.table.core.windows.net`, credential)
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)
