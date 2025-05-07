@@ -9,9 +9,9 @@
   },
   "author": "",
   "dependencies": {
-    "@azure/data-tables": "^13.2.2",
+    "@azure/data-tables": "^13.3.0",
     "@azure/identity": "^4.3.0",
-    "@azure/web-pubsub": "^1.1.1"
+    "@azure/web-pubsub": "^1.1.4"
   },
   "devDependencies": {
     "eslint": "^8.2.0",
