@@ -18,7 +18,6 @@ resource staticApp 'Microsoft.Web/staticSites@2021-02-01' = {
     repositoryUrl: repoUrl
     branch: branch
     repositoryToken: repoToken
-    
     buildProperties: {
       appLocation: 'client'
       apiLocation: 'api'

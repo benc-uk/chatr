@@ -9,9 +9,9 @@ for varName in GITHUB_TOKEN GITHUB_REPO AZURE_REGION AZURE_PREFIX AZURE_RESGRP; 
 done
 [ $varUnset ] && exit 1
 
-[ "$GITHUB_REPO" ==  "https://github.com/benc-uk/chatr.git" ] && { 
-  echo "💔 Warning! You should be running from a fork of this repo, not a clone!"; 
-  read -n 1 -s -r -p "Press any key to continue, or ctrl+c to exit..."; 
+[ "$GITHUB_REPO" ==  "https://github.com/benc-uk/chatr.git" ] && {
+  echo "💔 Warning! You should be running from a fork of this repo, not a clone!";
+  read -n 1 -s -r -p "Press any key to continue, or ctrl+c to exit...";
 }
 
 echo -e "\n\n🚀 Deployment started..."
@@ -25,14 +25,5 @@ az deployment sub create                 \
   resGroupName="$AZURE_RESGRP"           \
   location="$AZURE_REGION"
 
-pubSubConnStr=$(az deployment sub show --name chatr --query 'properties.outputs.pubSubConnStr.value' -o tsv)
-storageKey=$(az deployment sub show --name chatr --query 'properties.outputs.storageKey.value' -o tsv)
-
-echo -e "\n🔨 Configuring static web app..."
-az staticwebapp appsettings set -n "${AZURE_PREFIX}" --setting-names \
-  PUBSUB_CONNECTION_STRING="${pubSubConnStr}" \
-  PUBSUB_HUB="chat" \
-  STORAGE_ACCOUNT_KEY="${storageKey}" \
-  STORAGE_ACCOUNT_NAME="${AZURE_PREFIX}store" > /dev/null
 
 echo -e "\n✨ Deployment complete!\n🌐 The URL to accecss the app is: $(az deployment sub show --name chatr --query 'properties.outputs.appUrl.value' -o tsv)"
