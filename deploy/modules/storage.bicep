@@ -10,5 +10,3 @@ resource storageAcct 'Microsoft.Storage/storageAccounts@2021-02-01' = {
     name: 'Standard_LRS'
   }
 }
-
-output key string = listKeys(storageAcct.id, storageAcct.apiVersion).keys[0].value

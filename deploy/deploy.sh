@@ -26,13 +26,11 @@ az deployment sub create                 \
   location="$AZURE_REGION"
 
 pubSubConnStr=$(az deployment sub show --name chatr --query 'properties.outputs.pubSubConnStr.value' -o tsv)
-storageKey=$(az deployment sub show --name chatr --query 'properties.outputs.storageKey.value' -o tsv)
 
 echo -e "\n🔨 Configuring static web app..."
 az staticwebapp appsettings set -n "${AZURE_PREFIX}" --setting-names \
   PUBSUB_CONNECTION_STRING="${pubSubConnStr}" \
   PUBSUB_HUB="chat" \
-  STORAGE_ACCOUNT_KEY="${storageKey}" \
   STORAGE_ACCOUNT_NAME="${AZURE_PREFIX}store" > /dev/null
 
 echo -e "\n✨ Deployment complete!\n🌐 The URL to accecss the app is: $(az deployment sub show --name chatr --query 'properties.outputs.appUrl.value' -o tsv)"
