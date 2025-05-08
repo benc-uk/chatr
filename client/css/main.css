@@ -51,13 +51,13 @@ footer {
 }
 
 .chatMsgTitle {
-  font-size: 0.6rem;
+  font-size: 0.9rem;
   font-weight: bold;
   color: hsl(204, 86%, 53%);
 }
 
 .chatMsgBody {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .chatRight {
@@ -114,4 +114,18 @@ footer {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
   }
+}
+
+.deleteButton {
+  background-color: #d35252 !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.1rem 0.1rem !important;
+  margin: 0 !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  max-width: 2rem !important;
+  float: right !important;
+  font-size: 0.9rem !important;
+  text-align: center !important;
 }

@@ -1,7 +1,6 @@
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
+import { nextTick } from 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
-// eslint-disable-next-line no-undef
-export default Vue.component('chat', {
+export default {
   data() {
     return {
       message: '',
@@ -57,7 +56,7 @@ export default Vue.component('chat', {
       })
 
       // eslint-disable-next-line no-undef
-      Vue.nextTick(() => {
+      nextTick(() => {
         if (this.$refs['chatBox']) {
           this.$refs['chatBox'].scrollTop = this.$refs['chatBox'].scrollHeight
         }
@@ -103,4 +102,4 @@ export default Vue.component('chat', {
       </div>
     </div> 
   </div>`,
-})
+}

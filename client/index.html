@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,15 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chatr App</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 
   <link rel="stylesheet" href="css/main.css" />
 
   <link rel="icon" href="https://emojipedia-us.s3.amazonaws.com/source/skype/289/speech-balloon_1f4ac.png" />
 
-  <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.4.4/dist/bulma-toast.esm.js"></script>
 
   <!-- App stuff -->
   <script type="module" src="js/app.js"></script>
@@ -46,10 +46,9 @@
             <li v-for="(chat, chatId) in allChats">
               <a class="animate__animated animate__bounceIn" @click.stop="joinChat(chatId, chat.name)">
                 {{ chat.name }}
-                <button v-if="chat.owner == user.userId" class="button is-small is-pulled-right is-rounded is-danger"
-                  @click.stop="deleteChat(chatId)" style="top: -0.2rem">
+                <button v-if="chat.owner == user.userId" class="deleteButton" @click.stop="deleteChat(chatId)">
                   <span class="icon is-small">
-                    <i class="fas fa-trash-alt"></i>
+                    <i class="far fa-circle-xmark"></i>
                   </span>
                 </button>
               </a>
@@ -116,22 +115,24 @@
       <div class="modal-background"></div>
       <div class="modal-card">
         <header class="modal-card-head">
-          <p class="modal-card-title">New Chat</p>
+          <p class="modal-card-title"><i class="fas fa-comment-dots"></i> &nbsp; New Chat</p>
         </header>
         <section class="modal-card-body">
           <input class="input" ref="newChatInput" placeholder="Chat name" @keyup.enter="newChatCreate"
             v-model="newChatName"></input>
         </section>
         <footer class="modal-card-foot">
-          <button class="button is-success" @click="newChatCreate">Create</button>
-          <button class="button" @click="newChatCancel">Cancel</button>
+          <div class="buttons">
+            <button class="button is-success" @click="newChatCreate">Create</button>
+            <button class="button" @click="newChatCancel">Cancel</button>
+          </div>
         </footer>
       </div>
     </div>
 
   </section>
 
-  <footer>Chatr v0.1.0, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
+  <footer>Chatr v0.2.0, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
   </footer>
 </body>
 

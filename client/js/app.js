@@ -1,15 +1,10 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
+import { createApp } from 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
-const MAX_IDLE_TIME = 60
+const MAX_IDLE_TIME = 6
 
-// eslint-disable-next-line
-new Vue({
-  el: '#app',
-
-  components: { chat: chat },
-
+createApp({
   data() {
     return {
       // Map of joined chats, using id as key
@@ -90,6 +85,7 @@ new Vue({
       res = await fetch(`/api/getToken?userId=${this.user.userId}`)
       if (!res.ok) throw `getToken error: ${await res.text()}`
       let token = await res.json()
+      console.log('### Got WebPubSub token from server', token)
 
       // Now connect to Azure Web PubSub using the URL we got
       this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
@@ -131,7 +127,7 @@ new Vue({
       // Server events
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
         let chat = JSON.parse(msg.data.data)
-        this.$set(this.allChats, chat.id, chat)
+        this.allChats[chat.id] = chat
 
         this.$nextTick(() => {
           const chatList = this.$refs.chatList
@@ -141,7 +137,8 @@ new Vue({
 
       if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {
         let chatId = msg.data.data
-        this.$delete(this.allChats, chatId)
+        this.allChats[chatId] = null
+        delete this.allChats[chatId]
         if (this.joinedChats[chatId]) {
           utils.toastMessage(`💥 Chat deleted by owner, you have been removed!`, 'danger')
           this.onLeaveEvent(chatId)
@@ -156,14 +153,17 @@ new Vue({
         } else {
           utils.toastMessage(`🤩 ${newUser.userName} has just joined`, 'success')
         }
-        this.$set(this.allUsers, newUser.userId, newUser)
+        this.allUsers[newUser.userId] = newUser
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
         let userId = msg.data.data
-        let userName = this.allUsers[userId].userName
-        this.$delete(this.allUsers, userId)
-        utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
+        if (msg.data && this.allUsers[userId]) {
+          let userName = this.allUsers[userId].userName
+          this.allUsers[userId] = null
+          delete this.allUsers[userId]
+          utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
+        }
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
@@ -176,13 +176,14 @@ new Vue({
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userIsIdle') {
         let userId = msg.data.data
-        this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: true })
+        this.allUsers[userId] = { ...this.allUsers[userId], idle: true }
         utils.toastMessage(`💤 User ${this.allUsers[userId].userName} is now idle`, 'link')
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userNotIdle') {
         let userId = msg.data.data
-        this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: false })
+        this.allUsers[userId] = { ...this.allUsers[userId], idle: false }
+
         utils.toastMessage(`🤸‍♂️ User ${this.allUsers[userId].userName} has returned`, 'link')
       }
     })
@@ -258,8 +259,7 @@ new Vue({
       if (this.joinedChats[chatId]) return
 
       this.deactivateChats()
-      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: true, unreadCount: 0 })
-
+      this.joinedChats[chatId] = { id: chatId, name: chatName, active: true, unreadCount: 0 }
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -279,7 +279,7 @@ new Vue({
 
       // If grabbing focus means we should deactivate current chat
       if (grabFocus) this.deactivateChats()
-      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 })
+      this.joinedChats[chatId] = { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 }
     },
 
     //
@@ -313,7 +313,9 @@ new Vue({
     // Vue event handler for when leave is clicked in child chat component
     //
     onLeaveEvent(chatId) {
-      this.$delete(this.joinedChats, chatId)
+      this.joinedChats[chatId] = null
+      delete this.joinedChats[chatId]
+
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -369,6 +371,11 @@ new Vue({
     // Remove a chat if you are the owner
     //
     deleteChat(chatId) {
+      const ok = confirm('Are you sure you want to delete this chat? This will remove it for all users.')
+      if (!ok) return
+
+      this.allChats[chatId] = { ...this.allChats[chatId], name: 'DELETING...' }
+
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -380,3 +387,5 @@ new Vue({
     },
   },
 })
+  .component('chat', chat)
+  .mount('#app')
