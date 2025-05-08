@@ -4,17 +4,16 @@
 // Ben Coleman, 2021
 //
 
-const { TableServiceClient, TableClient } = require('@azure/data-tables')
-const { DefaultAzureCredential } = require('@azure/identity')
+import { TableServiceClient, TableClient } from '@azure/data-tables'
+import { DefaultAzureCredential } from '@azure/identity'
 
 const account = process.env.STORAGE_ACCOUNT_NAME
-const accountKey = process.env.STORAGE_ACCOUNT_KEY
 const chatsTable = 'chats'
 const usersTable = 'users'
 const partitionKey = 'chatr'
 
-if (!account || !accountKey) {
-  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
+if (!account) {
+  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME is not set')
 }
 
 const credential = new DefaultAzureCredential()
@@ -48,7 +47,7 @@ initTables()
 // ==============================================================
 // Chat state functions
 // ==============================================================
-async function upsertChat(id, chat) {
+export async function upsertChat(id, chat) {
   const chatEntity = {
     partitionKey: partitionKey,
     rowKey: id,
@@ -57,7 +56,7 @@ async function upsertChat(id, chat) {
   await chatTableClient.upsertEntity(chatEntity, 'Replace')
 }
 
-async function removeChat(id) {
+export async function removeChat(id) {
   try {
     await chatTableClient.deleteEntity(partitionKey, id)
   } catch (e) {
@@ -65,7 +64,7 @@ async function removeChat(id) {
   }
 }
 
-async function getChat(id) {
+export async function getChat(id) {
   try {
     const chatEntity = await chatTableClient.getEntity(partitionKey, id)
 
@@ -75,7 +74,7 @@ async function getChat(id) {
   }
 }
 
-async function listChats() {
+export async function listChats() {
   let chatsResp = {}
   let chatList = chatTableClient.listEntities()
 
@@ -91,7 +90,7 @@ async function listChats() {
 // ==============================================================
 // User state functions
 // ==============================================================
-async function upsertUser(id, user) {
+export async function upsertUser(id, user) {
   const userEntity = {
     partitionKey: partitionKey,
     rowKey: id,
@@ -100,7 +99,7 @@ async function upsertUser(id, user) {
   await userTableClient.upsertEntity(userEntity, 'Replace')
 }
 
-async function removeUser(id) {
+export async function removeUser(id) {
   try {
     await userTableClient.deleteEntity(partitionKey, id)
   } catch (e) {
@@ -108,7 +107,7 @@ async function removeUser(id) {
   }
 }
 
-async function listUsers() {
+export async function listUsers() {
   let usersResp = {}
   let userList = userTableClient.listEntities()
 
@@ -118,26 +117,11 @@ async function listUsers() {
   return usersResp
 }
 
-async function getUser(id) {
+export async function getUser(id) {
   try {
     const user = await userTableClient.getEntity(partitionKey, id)
     return user
   } catch (err) {
     return null
   }
-}
-
-// ==============================================================
-// Export functions into module scope
-// ==============================================================
-module.exports = {
-  upsertChat,
-  removeChat,
-  getChat,
-  listChats,
-
-  upsertUser,
-  removeUser,
-  getUser,
-  listUsers,
 }
