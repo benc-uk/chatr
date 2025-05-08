@@ -1,7 +1,7 @@
 //
 // Chatr - API
 // REST API to get an access token and URL so that clients can connect to Azure PubSub websocket
-// Ben Coleman, 2021
+// Ben Coleman, 2021 - 2025
 //
 
 import { WebPubSubServiceClient } from '@azure/web-pubsub'

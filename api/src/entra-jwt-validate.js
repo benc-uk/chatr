@@ -1,3 +1,9 @@
+//
+// Chatr - API
+// Token validation for JWT issued from Microsoft Entra ID
+// Ben Coleman, 2025
+//
+
 import jwt from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
 

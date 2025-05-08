@@ -4,7 +4,7 @@
 //
 // NOTE. This function DOES NOT use the Web PubSub Trigger binding as you might expect
 // So we can host it in Static Web App, we handle the HTTP webhooks manually, it's not hard :)
-// Ben Coleman, 2021
+// Ben Coleman, 2021 - 2025
 //
 
 import { WebPubSubServiceClient } from '@azure/web-pubsub'
@@ -58,11 +58,6 @@ app.http('eventHandler', {
     const userId = req.headers.get('ce-userid')
     const eventName = req.headers.get('ce-eventname')
 
-    // let body = {}
-    // try {
-    //   body = await req.json()
-    // } catch (err) {}
-
     // System event for disconnected user, logoff or tab closed
     if (eventName === 'disconnected') {
       context.log(`### User ${userId} has disconnected`)
@@ -80,7 +75,6 @@ app.http('eventHandler', {
       const userName = body.userName
       const userProvider = body.userProvider
       console.log(`### User ${userId} ${userName} ${userProvider} connected`)
-      context.log(`### User ${userId} ${userName} ${userProvider} connected`)
       state.upsertUser(userId, { userName, userProvider, idle: false })
       await serviceClient.sendToAll({
         chatEvent: 'userOnline',
@@ -110,7 +104,7 @@ app.http('eventHandler', {
 
     if (eventName === 'joinChat') {
       const chatId = await req.text()
-      let chat = await state.getChat(chatId)
+      const chat = await state.getChat(chatId)
 
       if (!chat) {
         context.log(`### Attempt to join chat with ID ${chatId} failed, it doesn't exist`)
@@ -233,13 +227,13 @@ app.http('eventHandler', {
 // Helper to remove user from a chat
 //
 async function leaveChat(userId, chatId) {
-  let chat = await state.getChat(chatId)
+  const chat = await state.getChat(chatId)
   if (!chat) {
     return
   }
 
   // Find & remove user from chat's member list
-  for (let memberUserId in chat.members) {
+  for (const memberUserId in chat.members) {
     if (memberUserId === userId) {
       delete chat.members[userId]
     }
@@ -262,7 +256,7 @@ async function removeChatUser(serviceClient, userId) {
   })
 
   // Leave all chats
-  for (let chatId in await state.listChats()) {
+  for (const chatId in await state.listChats()) {
     console.log('### Calling leaveChat', userId, chatId)
     await leaveChat(userId, chatId)
   }

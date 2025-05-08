@@ -1,7 +1,7 @@
 //
 // Chatr - API
 // State management and persistence backed with Azure Table storage
-// Ben Coleman, 2021
+// Ben Coleman, 2021 - 2025
 //
 
 import { TableServiceClient, TableClient } from '@azure/data-tables'
@@ -17,6 +17,7 @@ if (!account) {
 }
 
 const credential = new DefaultAzureCredential()
+console.log(`### 📭 Using Azure Storage account: ${credential}`)
 const serviceClient = new TableServiceClient(`https://${account}.table.core.windows.net`, credential)
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)
@@ -75,15 +76,16 @@ export async function getChat(id) {
 }
 
 export async function listChats() {
-  let chatsResp = {}
-  let chatList = chatTableClient.listEntities()
+  const chatsResp = {}
+  const chatList = chatTableClient.listEntities()
 
   for await (const chat of chatList) {
-    let chatObj = JSON.parse(chat.data)
+    const chatObj = JSON.parse(chat.data)
     // Timestamp only used by cleanup script
     chatObj.timestamp = chat.timestamp
     chatsResp[chat.rowKey] = chatObj
   }
+
   return chatsResp
 }
 
@@ -108,8 +110,8 @@ export async function removeUser(id) {
 }
 
 export async function listUsers() {
-  let usersResp = {}
-  let userList = userTableClient.listEntities()
+  const usersResp = {}
+  const userList = userTableClient.listEntities()
 
   for await (const user of userList) {
     usersResp[user.rowKey] = user
