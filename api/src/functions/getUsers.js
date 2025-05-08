@@ -10,6 +10,7 @@ import { listUsers } from '../state.js'
 app.http('users', {
   methods: ['GET'],
   authLevel: 'anonymous',
+
   handler: async () => {
     try {
       const users = await listUsers()

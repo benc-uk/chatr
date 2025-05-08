@@ -3,7 +3,7 @@
 // Webhook event handler for receiving upstream events from Azure Web PubSub
 //
 // NOTE. This function DOES NOT use the Web PubSub Trigger binding as you might expect
-// So we can host it in Static Web App, we handle the HTTP webhooks manually, it's not hard :)
+// We handle the HTTP webhooks manually, it's not hard :)
 // Ben Coleman, 2021 - 2025
 //
 
@@ -19,6 +19,7 @@ const endpoint = process.env.PUBSUB_ENDPOINT
 app.http('eventHandler', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
+
   handler: async (req, context) => {
     if (!hubName || !endpoint) {
       const errorMsg = 'ERROR! Must set PUBSUB_HUB, PUBSUB_ENDPOINT in app settings / env vars'
@@ -40,7 +41,7 @@ app.http('eventHandler', {
       await validate(accessToken, process.env.TENANT_ID)
     }
 
-    // We have to handle webhook validation
+    // We have to handle cloud event webhook validation
     // https://learn.microsoft.com/en-us/azure/azure-web-pubsub/howto-develop-eventhandler#upstream-and-validation
     if (req.method === 'OPTIONS') {
       context.log(`### Webhook validation was called!`)

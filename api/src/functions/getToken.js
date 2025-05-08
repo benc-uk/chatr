@@ -14,6 +14,7 @@ const endpoint = process.env.PUBSUB_ENDPOINT
 app.http('getToken', {
   methods: ['GET'],
   authLevel: 'anonymous',
+
   handler: async (req, context) => {
     if (!hubName || !endpoint) {
       context.log('### ERROR! Must set PUBSUB_HUB & PUBSUB_ENDPOINT in app settings / env vars')

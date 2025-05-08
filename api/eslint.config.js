@@ -4,7 +4,7 @@ import { defineConfig } from 'eslint/config'
 
 export default defineConfig([
   {
-    files: ['**/*.{js,mjs,cjs}'],
+    files: ['api/**/*.{js,mjs,cjs}'],
     plugins: { js },
     extends: ['js/recommended'],
     rules: {
@@ -17,5 +17,4 @@ export default defineConfig([
       ],
     },
   },
-  { files: ['**/*.{js,mjs,cjs}'], languageOptions: { globals: globals.node } },
 ])

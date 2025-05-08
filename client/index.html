@@ -17,7 +17,7 @@
 
   <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.4.4/dist/bulma-toast.esm.js"></script>
 
-  <!-- App stuff -->
+  <!-- Vue.js app -->
   <script type="module" src="js/app.js"></script>
 </head>
 
@@ -32,11 +32,11 @@
         <h1 class="title is-4">Please wait while we connect to the server.</h1>
       </div>
       <div class="is-flex is-justify-content-center mt-5">
-        <div class="tag is-success mr-4" v-if="user != null" v-cloak>ACCOUNT <i class="fas fa-check"></i></div>
-        <div class="tag is-success mr-4" v-if="!online" v-cloak>ONLINE <i class="fas fa-check"></i></div>
-        <div class="tag is-success mr-4" v-if="allChats != null" v-cloak>CHATS <i class="fas fa-check"></i></div>
-        <div class="tag is-success mr-4" v-if="allUsers != null" v-cloak>USERS <i class="fas fa-check"></i></div>
-        <div class="tag is-success mr-4" v-if="ws != null" v-cloak>WEBSOCKET <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="user != null" v-cloak>&nbsp; ACCOUNT <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="!online" v-cloak>&nbsp; ONLINE <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allChats != null" v-cloak>&nbsp; CHATS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allUsers != null" v-cloak>&nbsp; USERS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="ws != null" v-cloak>&nbsp; PUBSUB <i class="fas fa-check"></i></div>
       </div>
     </div>
 

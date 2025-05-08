@@ -5,6 +5,10 @@ import { createApp } from 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 const MAX_IDLE_TIME = 60
 
 createApp({
+  components: {
+    chat,
+  },
+
   data() {
     return {
       // Map of joined chats, using id as key
@@ -26,7 +30,7 @@ createApp({
       // Used to handle idle detection
       idle: false,
       idleTime: 0,
-      // Used by the ne chat modal dialog
+      // Used by the new chat modal dialog
       openNewChatDialog: false,
       newChatName: '',
       error: '',
@@ -388,6 +392,4 @@ createApp({
       )
     },
   },
-})
-  .component('chat', chat)
-  .mount('#app')
+}).mount('#app')

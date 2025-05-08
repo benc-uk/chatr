@@ -7,6 +7,7 @@
   "scripts": {
     "start": "swa start ../client --api-location . --swa-config-location ../client",
     "lint": "eslint . && prettier --check *.js",
+    "lint-client": "eslint ../client/**/*.js && prettier --check ../client/**/*.js",
     "lint-fix": "eslint . --fix && prettier --write *.js"
   },
   "author": "",
