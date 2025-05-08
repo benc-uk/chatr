@@ -28,13 +28,28 @@
     <!-- display spinner if we're not online yet -->
     <div v-if="(!online || !user || !ws) && !error" class="loaderOverlay">
       <div class="loader">Loading...</div>
+      <div class="is-flex is-justify-content-center">
+        <h1 class="title is-4">Please wait while we connect to the server.</h1>
+      </div>
+      <div class="is-flex is-justify-content-center mt-5">
+        <div class="tag is-success mr-4" v-if="user != null" v-cloak>ACCOUNT <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="!online" v-cloak>ONLINE <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allChats != null" v-cloak>CHATS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allUsers != null" v-cloak>USERS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="ws != null" v-cloak>WEBSOCKET <i class="fas fa-check"></i></div>
+      </div>
     </div>
 
-    <div class="notification is-danger" v-if="error">{{ error }}</div>
+    <div class="notification is-danger" v-if="error" v-cloak>
+      <h1 class="title is-4">💩 Application Error ☠️</h1>
+      <div class="errorMessage">
+        {{ error }}
+      </div>
+    </div>
 
     <div class="columns" v-if="ws && !error">
       <!-- box for group chats -->
-      <div class="column">
+      <div class="column" v-cloak>
         <div class="title is-4">
           Group Chats
           <button @click="newChat()" class="button is-info is-pulled-right"><i class="fas fa-comment-dots"></i>&nbsp;
@@ -55,11 +70,14 @@
 
             </li>
           </ul>
+          <div v-if="!allChats || Object.keys(allChats).length == 0" class="notification is-info is-light">
+            No group chats available. Create a new one!
+          </div>
         </aside>
       </div>
 
       <!-- box for online users -->
-      <div class="column">
+      <div class="column" v-cloak>
         <div class="title is-4">
           Online Users
           <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right"

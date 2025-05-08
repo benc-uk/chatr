@@ -20,7 +20,7 @@ export default {
   async mounted() {
     // Use addEventListener to not overwrite the existing listeners
     this.ws.addEventListener('message', (evt) => {
-      let msg = JSON.parse(evt.data)
+      const msg = JSON.parse(evt.data)
 
       switch (msg.type) {
         case 'message': {
@@ -55,7 +55,7 @@ export default {
         time: new Date(),
       })
 
-      // eslint-disable-next-line no-undef
+       
       nextTick(() => {
         if (this.$refs['chatBox']) {
           this.$refs['chatBox'].scrollTop = this.$refs['chatBox'].scrollHeight
@@ -77,7 +77,7 @@ export default {
             fromUserId: this.user.userId,
             fromUserName: this.user.userDetails,
           },
-        })
+        }),
       )
       this.message = ''
     },

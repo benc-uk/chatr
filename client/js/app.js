@@ -2,7 +2,7 @@ import chat from './components/chat.js'
 import utils from './utils.js'
 import { createApp } from 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
-const MAX_IDLE_TIME = 6
+const MAX_IDLE_TIME = 60
 
 createApp({
   data() {
@@ -16,11 +16,11 @@ createApp({
       online: false,
       // User object which is an instance of SWA clientPrincipal
       // See https://docs.microsoft.com/en-us/azure/static-web-apps/user-information?tabs=javascript#client-principal-data
-      user: {},
+      user: null,
       // Map of chat id to server chat objects, synced with the server
-      allChats: {},
+      allChats: null,
       // Map of users to server user objects, synced with the server
-      allUsers: {},
+      allUsers: null,
       // Are we running in a SWA
       isAzureStaticWebApp: false,
       // Used to handle idle detection
@@ -41,12 +41,12 @@ createApp({
 
     // Get user details from special SWA auth endpoint
     try {
-      let userRes = await fetch(`/.auth/me`)
+      const userRes = await fetch(`/.auth/me`)
       if (!userRes.ok) {
         throw 'Got a non-200 from to call to /.auth/me'
       } else {
         // Get user details from clientPrincipal returned from SWA
-        let userData = await userRes.json()
+        const userData = await userRes.json()
         // Handles rare case locally when using emulator
         if (!userData.clientPrincipal) {
           document.location.href = 'login.html'
@@ -68,24 +68,26 @@ createApp({
       }
     }
 
+    let res = null
     try {
       // Get all existing chats from server
-      let res = await fetch(`/api/chats`)
-      if (!res.ok) throw `chats error: ${await res.text()}`
+      res = await fetch(`/api/chats`)
+      if (!res.ok) throw `chats API error: ${await res.text()}`
       let data = await res.json()
       this.allChats = data.chats
 
       // Get all existing users from server
       res = await fetch(`/api/users`)
-      if (!res.ok) throw `users error: ${await res.text()}`
+      if (!res.ok) throw `users API error: ${await res.text()}`
       data = await res.json()
       this.allUsers = data.users
 
       // Get URL & token to connect to Azure Web Pubsub
       res = await fetch(`/api/getToken?userId=${this.user.userId}`)
-      if (!res.ok) throw `getToken error: ${await res.text()}`
-      let token = await res.json()
-      console.log('### Got WebPubSub token from server', token)
+      if (!res.ok) throw `getToken API error: ${await res.text()}`
+      const token = await res.json()
+
+      console.log('### Got WebPubSub token from server', token.url)
 
       // Now connect to Azure Web PubSub using the URL we got
       this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
@@ -106,18 +108,18 @@ createApp({
             event: 'userConnected',
             dataType: 'json',
             data: { userName: this.user.userDetails, userProvider: this.user.identityProvider },
-          })
+          }),
         )
       }
     } catch (err) {
-      console.error(`API ERROR: ${err}`)
-      this.error = `💩 Failed to get data from the server ${err}, it could be down. You could try refreshing the page 🤷‍♂️`
+      const errNice = err.replaceAll('\\n', '\n')
+      this.error = `Backend error: ${res.status ?? 'Unknown'}\n${errNice}`
       return
     }
 
     // Handle messages from server
     this.ws.addEventListener('message', (evt) => {
-      let msg = JSON.parse(evt.data)
+      const msg = JSON.parse(evt.data)
 
       // System events
       if (msg.type === 'system' && msg.event === 'connected') {
@@ -126,7 +128,7 @@ createApp({
 
       // Server events
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
-        let chat = JSON.parse(msg.data.data)
+        const chat = JSON.parse(msg.data.data)
         this.allChats[chat.id] = chat
 
         this.$nextTick(() => {
@@ -136,7 +138,7 @@ createApp({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {
-        let chatId = msg.data.data
+        const chatId = msg.data.data
         this.allChats[chatId] = null
         delete this.allChats[chatId]
         if (this.joinedChats[chatId]) {
@@ -146,7 +148,7 @@ createApp({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
-        let newUser = JSON.parse(msg.data.data)
+        const newUser = JSON.parse(msg.data.data)
         // If the new user is ourselves, that means we're connected and online
         if (newUser.userId == this.user.userId) {
           this.online = true
@@ -157,9 +159,9 @@ createApp({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
-        let userId = msg.data.data
+        const userId = msg.data.data
         if (msg.data && this.allUsers[userId]) {
-          let userName = this.allUsers[userId].userName
+          const userName = this.allUsers[userId].userName
           this.allUsers[userId] = null
           delete this.allUsers[userId]
           utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
@@ -167,7 +169,7 @@ createApp({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
-        let chat = JSON.parse(msg.data.data)
+        const chat = JSON.parse(msg.data.data)
         if (!chat.grabFocus) {
           utils.toastMessage(`💬 Incoming: ${chat.name}`, 'warning')
         }
@@ -175,13 +177,13 @@ createApp({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userIsIdle') {
-        let userId = msg.data.data
+        const userId = msg.data.data
         this.allUsers[userId] = { ...this.allUsers[userId], idle: true }
         utils.toastMessage(`💤 User ${this.allUsers[userId].userName} is now idle`, 'link')
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userNotIdle') {
-        let userId = msg.data.data
+        const userId = msg.data.data
         this.allUsers[userId] = { ...this.allUsers[userId], idle: false }
 
         utils.toastMessage(`🤸‍♂️ User ${this.allUsers[userId].userName} has returned`, 'link')
@@ -215,7 +217,7 @@ createApp({
           event: 'createChat',
           dataType: 'json',
           data: { name: chatName, id: chatId },
-        })
+        }),
       )
       this.newChatName = ''
       this.deactivateChats()
@@ -247,7 +249,7 @@ createApp({
           event: 'createPrivateChat',
           dataType: 'json',
           data: { initiatorUserId: this.user.userId, targetUserId: targetUser },
-        })
+        }),
       )
     },
 
@@ -266,7 +268,7 @@ createApp({
           event: 'joinChat',
           dataType: 'text',
           data: chatId,
-        })
+        }),
       )
     },
 
@@ -297,7 +299,7 @@ createApp({
     // Deactivate all tabs
     //
     deactivateChats() {
-      for (let chatId in this.joinedChats) {
+      for (const chatId in this.joinedChats) {
         this.joinedChats[chatId].active = false
       }
     },
@@ -322,7 +324,7 @@ createApp({
           event: 'leaveChat',
           dataType: 'json',
           data: { chatId, userName: this.user.userDetails },
-        })
+        }),
       )
 
       const firstChat = this.joinedChats[Object.keys(this.joinedChats)[0]]
@@ -342,7 +344,7 @@ createApp({
             event: 'userExitIdle',
             dataType: 'text',
             data: this.user.userId,
-          })
+          }),
         )
       }
       this.idle = false
@@ -362,7 +364,7 @@ createApp({
             event: 'userEnterIdle',
             dataType: 'text',
             data: this.user.userId,
-          })
+          }),
         )
       }
     },
@@ -382,7 +384,7 @@ createApp({
           event: 'deleteChat',
           dataType: 'text',
           data: chatId,
-        })
+        }),
       )
     },
   },

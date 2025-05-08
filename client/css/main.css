@@ -1,5 +1,6 @@
 .logo {
-  width: 48px;
+  height: 128px !important;
+  margin-right: 20px;
 }
 
 .chatBox {
@@ -116,6 +117,7 @@ footer {
   }
 }
 
+/* Hacky but I had to fight against Bulma CSS */
 .deleteButton {
   background-color: #d35252 !important;
   color: white !important;
@@ -128,4 +130,16 @@ footer {
   float: right !important;
   font-size: 0.9rem !important;
   text-align: center !important;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+.errorMessage {
+  color: #332020 !important;
+  font-size: 1.1rem !important;
+  margin-top: 0.5rem !important;
+  font-family: monospace !important;
+  white-space: pre-wrap !important;
 }
