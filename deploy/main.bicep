@@ -46,6 +46,6 @@ module pubsub 'modules/pubsub.bicep' = {
   }
 }
 
+// TODO: Add principals to storage
 output appUrl string = 'https://${staticApp.outputs.appHostname}'
 output pubSubConnStr string = 'Endpoint=https://${resPrefix}.webpubsub.azure.com;AccessKey=${pubsub.outputs.key};Version=1.0;'
-output storageKey string = storage.outputs.key
