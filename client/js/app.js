@@ -117,9 +117,7 @@ createApp({
         )
       }
     } catch (err) {
-      console.error('### Error in WebSocket connection', err)
-      const errNice = err.replaceAll('\\n', '\n')
-      this.error = `Backend error: ${res.status ?? 'Unknown'}\n${errNice}`
+      this.error = `Backend error: ${res.status ?? 'Unknown'}\n${err.replaceAll('\\n', '\n')}`
       return
     }
 
