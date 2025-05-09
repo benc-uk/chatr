@@ -45,13 +45,12 @@ app.http('eventHandler', {
     // https://learn.microsoft.com/en-us/azure/azure-web-pubsub/howto-develop-eventhandler#upstream-and-validation
     if (req.method === 'OPTIONS') {
       context.log(`### Webhook validation was called!`)
-      context.res = {
+      return {
         headers: {
           'webhook-allowed-origin': req.headers.get('webhook-request-origin'),
         },
         status: 200,
       }
-      return
     }
 
     const credentials = new DefaultAzureCredential()
