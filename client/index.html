@@ -25,8 +25,25 @@
 
   <!-- Main app -->
   <section class="section" id="app">
+    <div>
+      <!-- debug the online, ws, user, error state -->
+      <div class="notification is-info" v-if="debug" v-cloak>
+        <h1 class="title is-4">Debug</h1>
+        <div class="debugMessage">
+          <div class="debug">ONLINE: {{ online }}</div>
+          <div class="debug">WS: {{ ws }}</div>
+          <div class="debug">USER: {{ user }}</div>
+          <div class="debug">CHATS: {{ allChats }}
+          </div>
+          <div class="debug">USERS: {{ allUsers }}
+          </div>
+          <div class="debug">ERROR: {{ error }}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- display spinner if we're not online yet -->
-    <div v-if="(!online || !user || !ws) && !error" class="loaderOverlay">
+    <div v-if="(!online || !user || !ws) && !error && !debug" class="loaderOverlay">
       <div class="loader">Loading...</div>
       <div class="is-flex is-justify-content-center">
         <h1 class="title is-4">Please wait while we connect to the server.</h1>

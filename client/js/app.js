@@ -34,6 +34,7 @@ createApp({
       openNewChatDialog: false,
       newChatName: '',
       error: '',
+      debug: false,
     }
   },
 
@@ -112,10 +113,11 @@ createApp({
             event: 'userConnected',
             dataType: 'json',
             data: { userName: this.user.userDetails, userProvider: this.user.identityProvider },
-          }),
+          })
         )
       }
     } catch (err) {
+      console.error('### Error in WebSocket connection', err)
       const errNice = err.replaceAll('\\n', '\n')
       this.error = `Backend error: ${res.status ?? 'Unknown'}\n${errNice}`
       return
@@ -123,6 +125,8 @@ createApp({
 
     // Handle messages from server
     this.ws.addEventListener('message', (evt) => {
+      if (this.debug) console.log('### WebSocket message', evt.data)
+
       const msg = JSON.parse(evt.data)
 
       // System events
@@ -153,6 +157,7 @@ createApp({
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
         const newUser = JSON.parse(msg.data.data)
+
         // If the new user is ourselves, that means we're connected and online
         if (newUser.userId == this.user.userId) {
           this.online = true
@@ -221,7 +226,7 @@ createApp({
           event: 'createChat',
           dataType: 'json',
           data: { name: chatName, id: chatId },
-        }),
+        })
       )
       this.newChatName = ''
       this.deactivateChats()
@@ -253,7 +258,7 @@ createApp({
           event: 'createPrivateChat',
           dataType: 'json',
           data: { initiatorUserId: this.user.userId, targetUserId: targetUser },
-        }),
+        })
       )
     },
 
@@ -272,7 +277,7 @@ createApp({
           event: 'joinChat',
           dataType: 'text',
           data: chatId,
-        }),
+        })
       )
     },
 
@@ -328,7 +333,7 @@ createApp({
           event: 'leaveChat',
           dataType: 'json',
           data: { chatId, userName: this.user.userDetails },
-        }),
+        })
       )
 
       const firstChat = this.joinedChats[Object.keys(this.joinedChats)[0]]
@@ -348,7 +353,7 @@ createApp({
             event: 'userExitIdle',
             dataType: 'text',
             data: this.user.userId,
-          }),
+          })
         )
       }
       this.idle = false
@@ -368,7 +373,7 @@ createApp({
             event: 'userEnterIdle',
             dataType: 'text',
             data: this.user.userId,
-          }),
+          })
         )
       }
     },
@@ -388,7 +393,7 @@ createApp({
           event: 'deleteChat',
           dataType: 'text',
           data: chatId,
-        }),
+        })
       )
     },
   },

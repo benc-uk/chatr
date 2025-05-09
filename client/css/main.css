@@ -143,3 +143,10 @@ footer {
   font-family: monospace !important;
   white-space: pre-wrap !important;
 }
+
+.debug {
+  display: block;
+  margin: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid blue;
+}

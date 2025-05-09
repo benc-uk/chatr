@@ -29,14 +29,16 @@ async function initTables() {
   console.log(`### 📭 Connected to Azure table storage: ${account}`)
 
   try {
+    console.log(`### 📭 Creating table ${chatsTable} (it might already exist, that's OK)`)
     await serviceClient.createTable(chatsTable)
   } catch (err) {
-    if (err.statusCode == 409) console.log(`### 🆗 Table ${chatsTable} already exists, that's OK`)
+    console.log(`### Error ${err} creating table ${chatsTable}`)
   }
   try {
+    console.log(`### 📭 Creating table ${usersTable} (it might already exist, that's OK)`)
     await serviceClient.createTable(usersTable)
   } catch (err) {
-    if (err.statusCode == 409) console.log(`### 🆗 Table ${usersTable} already exists, that's OK`)
+    console.log(`### Error ${err} creating table ${usersTable}`)
   }
 }
 

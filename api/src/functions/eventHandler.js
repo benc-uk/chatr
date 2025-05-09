@@ -28,7 +28,7 @@ app.http('eventHandler', {
     }
 
     // OPTIONAL: Validate the JWT token if TENANT_ID was set
-    if (process.env.TENANT_ID) {
+    if (process.env.VALIDATION_TENANT_ID) {
       let accessToken = req.headers.get('authorization')
       if (accessToken && accessToken.startsWith('Bearer ')) {
         accessToken = accessToken.substring(7)

@@ -1,6 +1,6 @@
 # Used by `deploy` & `tunnel` targets
-AZURE_PREFIX ?= chatr
-AZURE_RESGRP ?= projects
+AZURE_PREFIX ?= chatr2025
+AZURE_RESGRP ?= chatr2025
 AZURE_REGION ?= westeurope
 AZURE_SUB = $(shell az account show --query id -o tsv)
 
@@ -32,7 +32,8 @@ deploy-infra: ## 🧱 Deploy required infra in Azure using Bicep
 	@./deploy/deploy.sh
 
 deploy-api: ## 🌐 Deploy API to Azure using Function Core Tools
-	func azure functionapp publish $(AZURE_PREFIX)
+	@which func > /dev/null || { echo "👋 Must install the Azure Functions Core Tools https://aka.ms/azure-functions-core-tools"; exit 1; }
+	cd $(API_DIR); func azure functionapp publish $(AZURE_PREFIX)
 
 deploy-client: ## 🧑 Deploy client to Azure using SWA CLI
 	swa deploy -a ./client -n $(AZURE_PREFIX) -S $(AZURE_SUB) -R $(AZURE_RESGRP) --env production
