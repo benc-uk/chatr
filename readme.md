@@ -206,10 +206,13 @@ $ make
 help                 💬 This help message
 lint                 🔎 Lint & format, will not fix but sets exit code on error
 lint-fix             📜 Lint & format, will try to fix errors and modify code
-run                  🏃 Run server locally using Static Web Apps CLI
+run                  🏃 Run server locally using SWA CLI
 clean                🧹 Clean up project
-deploy               🚀 Deploy everything to Azure using Bicep
-tunnel               🚇 Start loophole tunnel to expose localhost
+deploy-infra         🚀 Deploy required infra in Azure using Bicep
+deploy-api           🚀 Deploy API to Azure using Function Core Tools
+deploy-client        🚀 Deploy client to Azure using SWA CLI
+deploy               🚀 Deploy everything!
+tunnel               🚇 Start AWPS local tunnel tool for local development
 ```
 
 ## Deploying to Azure
@@ -220,24 +223,43 @@ Deployment is slightly complex due to the number of components and the configura
 
 ## Running Locally
 
-This is possible but requires a little effort as the Azure Web PubSub service needs to be able call the HTTP endpoint on your location machine, so a tunnel has employed.
+This requires a little effort as the Azure Web PubSub service needs to be able call the HTTP endpoint on your location machine, plus several role assignments & configurations needs to happen, see below. The fabulous Azure Web PubSub local tunnel tool does a great job of providing a way to create a tunnel.
 
-When running locally the Static Web Apps CLI is used and this provides a fake user authentication endpoint for us.
+When running locally the Static Web Apps CLI is used and this provides a nice fake user authentication endpoint for us.
 
-A summary of the steps is:
+### Pre-Reqs
 
-- Deploy an _Azure Storage_ account, get name and access key.
-- Deploy an _Azure Web Pub Sub_ instance, get connection string from the 'Keys' page.
+- Linux / MacOS / WSL with bash make etc
+- Node.js & npm
+- [Static Web Apps CLI](https://azure.github.io/static-web-apps-cli/)
+- [Azure Web PubSub local tunnel tool](https://learn.microsoft.com/en-gb/azure/azure-web-pubsub/howto-web-pubsub-tunnel-tool?tabs=bash)
+- _Optional, deployment only_: [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- _Optional, deployment only_: [Function Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
+
+### Summary
+
+A short summary of the steps to getting it running:
+
+- Deploy an _Azure Storage_ account, ensure it has public access.
+- Deploy an _Azure Web Pub Sub_ instance into the same resource group, also ensure it has public access.
+- Role assignments:
+  - Assign yourself the 'Web PubSub Service Owner' role on the Web Pub Sub resource
+  - Assign yourself the 'Storage Table Data Contributor' role on the Storage Account
 - Copy `api/local.settings.sample.json` to `api/local.settings.json` and edit the required settings values.
-- Start a localhost tunnel service such as **ngrok** or **loophole**. The tunnel should expose port 7071 over HTTP.  
-  I use [loophole](https://loophole.cloud/) as it allows me to set a custom host & DNS name, e.g.
-  - `loophole http 7071 --hostname chatr`
-- In _Azure Web Pub Sub_ settings.
-  - Add a hub named **chat**
-  - In the URL template put `https://{{hostname-of-tunnel-service}}/api/eventHandler`
-  - In system events tick **connected** and **disconnected**
+- In _Azure Web Pub Sub_ settings. Go into the 'Settings' section
+  - Add a hub named **"chat"**
+  - Add an event handler:
+    - In 'URL Template Type' select "Tunnel traffic to local"
+    - For the URL template add **"api/eventHandler"**
+    - Under system events tick **connected** and **disconnected**
+    - Leave everything else alone :)
+- Check the values at the top of the `makefile`
+  - `AZURE_PREFIX` should be the name of the _Azure Web Pub Sub_ resource
+  - `AZURE_RESGRP` should be the resource group you deployed into
+  - Rather than edit the `makefile` you can pass these values in after the make command or set them as env vars.
 - Run `make run`
-- Open `http://localhost:4280/index.html`
+- Open a second terminal/shell and run `make tunnel`
+- Open `http://localhost:4280/`
 
 # Known Issues
 

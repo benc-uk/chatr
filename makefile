@@ -21,20 +21,20 @@ lint: $(API_DIR)/node_modules ## 🔎 Lint & format, will not fix but sets exit 
 lint-fix: $(API_DIR)/node_modules ## 📜 Lint & format, will try to fix errors and modify code
 	cd $(API_DIR); npm run lint-fix
 
-run: $(API_DIR)/node_modules ## 🏃 Run server locally using SWA CLI
+run: $(API_DIR)/node_modules ## 🏃 Run client and API locally using SWA CLI
 	@which swa > /dev/null || { echo "👋 Must install the SWA CLI https://aka.ms/swa-cli"; exit 1; }
 	swa start ./client --api-location ./api --swa-config-location ./client
 
 clean: ## 🧹 Clean up project
 	rm -rf $(API_DIR)/node_modules
 
-deploy-infra: ## 🚀 Deploy required infra in Azure using Bicep
+deploy-infra: ## 🧱 Deploy required infra in Azure using Bicep
 	@./deploy/deploy.sh
 
-deploy-api: ## 🚀 Deploy API to Azure using Function Core Tools
+deploy-api: ## 🌐 Deploy API to Azure using Function Core Tools
 	func azure functionapp publish $(AZURE_PREFIX)
 
-deploy-client: ## 🚀 Deploy client to Azure using SWA CLI
+deploy-client: ## 🧑 Deploy client to Azure using SWA CLI
 	swa deploy -a ./client -n $(AZURE_PREFIX) -S $(AZURE_SUB) -R $(AZURE_RESGRP) --env production
 
 deploy: deploy-infra deploy-api deploy-client ## 🚀 Deploy everything!
