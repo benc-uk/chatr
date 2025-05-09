@@ -1,6 +1,6 @@
 # Used by `deploy` & `tunnel` targets
-AZURE_PREFIX ?= chatr2025
-AZURE_RESGRP ?= chatr2025
+AZURE_PREFIX ?= chatrapp
+AZURE_RESGRP ?= projects
 AZURE_REGION ?= westeurope
 AZURE_SUB = $(shell az account show --query id -o tsv)
 
@@ -8,7 +8,7 @@ AZURE_SUB = $(shell az account show --query id -o tsv)
 API_DIR := api
 CLIENT_DIR := client
 
-.PHONY: help run deploy lint lint-fix tunnel clean
+.PHONY: help lint lint-fix run clean deploy-infra deploy-api deploy-client deploy tunnel
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 
