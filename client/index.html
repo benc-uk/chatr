@@ -28,15 +28,12 @@
     <div>
       <!-- debug the online, ws, user, error state -->
       <div class="notification is-info" v-if="debug" v-cloak>
-        <h1 class="title is-4">Debug</h1>
         <div class="debugMessage">
           <div class="debug">ONLINE: {{ online }}</div>
           <div class="debug">WS: {{ ws }}</div>
           <div class="debug">USER: {{ user }}</div>
-          <div class="debug">CHATS: {{ allChats }}
-          </div>
-          <div class="debug">USERS: {{ allUsers }}
-          </div>
+          <div class="debug">CHATS: {{ allChats }}</div>
+          <div class="debug">USERS: {{ allUsers }}</div>
           <div class="debug">ERROR: {{ error }}</div>
         </div>
       </div>
@@ -97,8 +94,7 @@
       <div class="column" v-cloak>
         <div class="title is-4">
           Online Users
-          <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right"
-            v-if="isAzureStaticWebApp">
+          <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right">
             <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
           </a>
         </div>

@@ -25,8 +25,6 @@ createApp({
       allChats: null,
       // Map of users to server user objects, synced with the server
       allUsers: null,
-      // Are we running in a SWA
-      isAzureStaticWebApp: false,
       // Used to handle idle detection
       idle: false,
       idleTime: 0,
@@ -48,29 +46,16 @@ createApp({
     try {
       const userRes = await fetch(`/.auth/me`)
       if (!userRes.ok) {
-        throw 'Got a non-200 from to call to /.auth/me'
+        throw 'Failed to call /.auth/me endpoint'
       } else {
         // Get user details from clientPrincipal returned from SWA
         const userData = await userRes.json()
-        // Handles rare case locally when using emulator
-        if (!userData.clientPrincipal) {
-          document.location.href = 'login.html'
-          return
-        }
         this.user = userData.clientPrincipal
-        this.isAzureStaticWebApp = true
       }
+
+      console.log('### User details obtained:', JSON.stringify(this.user))
     } catch (err) {
-      // When auth endpoint not available, fallback to a prompt and fake clientPrincipal data
-      // In reality this is not really need anymore as we use the SWA emulator
-      const userName = prompt('Please set your user name')
-      // eslint-disable-next-line
-      if (!userName) window.location.href = window.location.href
-      this.user = {
-        userId: utils.hashString(userName),
-        userDetails: userName,
-        identityProvider: 'fake',
-      }
+      this.error = `Error getting user: ${err}`
     }
 
     let res = null
@@ -92,7 +77,8 @@ createApp({
       if (!res.ok) throw `getToken API error: ${await res.text()}`
       const token = await res.json()
 
-      console.log('### Got WebPubSub token from server', token.url)
+      console.log('### Data fetched from API')
+      console.log('### PubSub token obtained, creating WS connection to', token.baseUrl)
 
       // Now connect to Azure Web PubSub using the URL we got
       this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
@@ -107,6 +93,7 @@ createApp({
 
       // Custom notification event, rather that relying on the system connected event
       this.ws.onopen = () => {
+        console.log('### WebSocket connection opened')
         this.ws.send(
           JSON.stringify({
             type: 'event',
@@ -116,6 +103,8 @@ createApp({
           })
         )
       }
+
+      console.log('### App startup complete, waiting for WebSocket messages')
     } catch (err) {
       this.error = `Backend error: ${res.status ?? 'Unknown'}\n${err.replaceAll('\\n', '\n')}`
       return
@@ -158,6 +147,7 @@ createApp({
 
         // If the new user is ourselves, that means we're connected and online
         if (newUser.userId == this.user.userId) {
+          console.log('### User is online')
           this.online = true
         } else {
           utils.toastMessage(`🤩 ${newUser.userName} has just joined`, 'success')

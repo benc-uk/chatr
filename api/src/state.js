@@ -17,7 +17,6 @@ if (!account) {
 }
 
 const credential = new DefaultAzureCredential()
-console.log(`### 📭 Using Azure Storage account: ${credential}`)
 const serviceClient = new TableServiceClient(`https://${account}.table.core.windows.net`, credential)
 const userTableClient = new TableClient(`https://${account}.table.core.windows.net`, usersTable, credential)
 const chatTableClient = new TableClient(`https://${account}.table.core.windows.net`, chatsTable, credential)

@@ -55,7 +55,6 @@ export default {
         time: new Date(),
       })
 
-       
       nextTick(() => {
         if (this.$refs['chatBox']) {
           this.$refs['chatBox'].scrollTop = this.$refs['chatBox'].scrollHeight
@@ -77,7 +76,7 @@ export default {
             fromUserId: this.user.userId,
             fromUserName: this.user.userDetails,
           },
-        }),
+        })
       )
       this.message = ''
     },
