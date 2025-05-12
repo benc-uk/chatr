@@ -22,7 +22,6 @@
 </head>
 
 <body>
-
   <!-- Main app -->
   <section class="section" id="app">
     <div>
@@ -94,7 +93,7 @@
       <div class="column" v-cloak>
         <div class="title is-4">
           Online Users
-          <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right">
+          <a href="#" class="button is-info is-pulled-right" @click="logout()">
             <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
           </a>
         </div>
@@ -105,10 +104,9 @@
               <a class="animate__animated animate__bounceIn"
                 :class="{ 'userSelf': userId == user.userId, 'userAway': onlineUser.idle }">
                 <span>
-                  <i class="fab fa-twitter" v-if="onlineUser.userProvider == 'twitter'"></i>
                   <i class="fab fa-microsoft" v-if="onlineUser.userProvider == 'aad'"></i>
                   <i class="fab fa-github-alt" v-if="onlineUser.userProvider == 'github'"></i>
-                  <i class="fas fa-poo" v-if="onlineUser.userProvider == 'fake'"></i>
+                  <i class="fas fa-user" v-if="onlineUser.userProvider == 'guest'"></i>
                 </span>
                 &nbsp;{{ onlineUser.userName }} <span>&nbsp;&nbsp;<i class="fas fa-bed"
                     v-if="onlineUser.idle"></i></span>
@@ -163,7 +161,7 @@
 
   </section>
 
-  <footer>Chatr v0.2.0, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
+  <footer>Chatr v0.2.1, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
   </footer>
 </body>
 

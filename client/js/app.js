@@ -42,20 +42,40 @@ createApp({
     document.onkeydown = this.resetIdle
     setInterval(this.idleChecker, 1000)
 
-    // Get user details from special SWA auth endpoint
-    try {
-      const userRes = await fetch(`/.auth/me`)
-      if (!userRes.ok) {
-        throw 'Failed to call /.auth/me endpoint'
-      } else {
-        // Get user details from clientPrincipal returned from SWA
-        const userData = await userRes.json()
-        this.user = userData.clientPrincipal
+    // Special case for guest users
+    const guestUser = localStorage.getItem('guestUser')
+    if (guestUser) {
+      if (guestUser) {
+        this.user = {
+          userId: `${utils.hashString(guestUser)}`,
+          userRoles: ['anonymous', 'authenticated'],
+          claims: [],
+          identityProvider: 'guest', // I just invented a provider here!
+          userDetails: guestUser,
+        }
+        console.log('### Will use fake guest user:', this.user)
       }
+    } else {
+      // If not guest - Get user details from special SWA auth endpoint
+      try {
+        const userRes = await fetch(`/.auth/me`)
+        if (!userRes.ok) {
+          throw 'Failed to call /.auth/me endpoint'
+        } else {
+          // Get user details from clientPrincipal returned from SWA
+          const userData = await userRes.json()
+          this.user = userData.clientPrincipal
+        }
 
-      console.log('### User details obtained:', JSON.stringify(this.user))
-    } catch (err) {
-      this.error = `Error getting user: ${err}`
+        if (!this.user) {
+          // redirect to login page
+          window.location.href = '/login.html'
+          return
+        }
+        console.log('### User details obtained:', JSON.stringify(this.user))
+      } catch (err) {
+        this.error = `Error getting user: ${err}`
+      }
     }
 
     let res = null
@@ -383,6 +403,19 @@ createApp({
           data: chatId,
         })
       )
+    },
+
+    //
+    // Logout and remove the guest user cookie
+    //
+    logout() {
+      if (this.user.identityProvider === 'guest') {
+        localStorage.removeItem('guestUser')
+        window.location.href = '/login.html'
+        return
+      }
+
+      window.location.href = '/.auth/logout?post_logout_redirect_uri=/login.html'
     },
   },
 }).mount('#app')

@@ -12,6 +12,17 @@
   <link rel="stylesheet" href="css/main.css" />
 
   <link rel="icon" href="https://emojipedia-us.s3.amazonaws.com/source/skype/289/speech-balloon_1f4ac.png" />
+  <script>
+    function loginGuest() {
+      const name = document.querySelector('#guestName').value.trim();
+      if (name.length < 1) {
+        alert('Please enter a name');
+        return;
+      }
+      localStorage.setItem('guestUser', name);
+      window.location.href = '/index.html';
+    }
+  </script>
 </head>
 
 <body>
@@ -31,28 +42,56 @@
       </div>
       <div class="card-content">
         <div class="columns is-centered">
-          <div class="column is-half" style="text-align: center;">
-            <a class="button is-link is-large m-2" href="/.auth/login/aad">
-              <span class="icon"><i class="fab fa-microsoft"></i></span>
-              <span>Microsoft</span>
-            </a>
-            <a class="button is-link is-large m-2" href="/.auth/login/github">
-              <span class="icon"><i class="fab fa-github"></i></span>
-              <span>GitHub</span>
-            </a>
-            <!-- <a class="button is-link is-large m-2" href="/.auth/login/twitter">
-              <span class="icon"><i class="fab fa-twitter"></i></span>
-              <span>Twitter</span>
-            </a> -->
-          </div>
+          <a class="button is-info is-large m-1 mr-5" onclick="document.querySelector('dialog').showModal()">
+            <span class="icon"><i class="fas fa-user"></i></span>
+            <span>Guest</span>
+          </a>
+
+          <a class="button is-link is-large m-1" href="/.auth/login/aad">
+            <span class="icon"><i class="fab fa-microsoft"></i></span>
+            <span>Microsoft</span>
+          </a>
+          <a class="button is-link is-large m-1" href="/.auth/login/github">
+            <span class="icon"><i class="fab fa-github"></i></span>
+            <span>GitHub</span>
+          </a>
+
         </div>
       </div>
       </footer>
     </div>
+
+    <!-- Modal for guest login -->
+    <dialog>
+      <div class="card">
+        <div class="card-header has-background-info-light">
+          <p class="card-header-title is-centered title is-3">
+            Join as a guest user
+          </p>
+        </div>
+        <div class="card-content">
+          <div class="field">
+            <label class="label">Enter your name</label>
+            <div class="control">
+              <input id="guestName" class="input" type="text" placeholder="John Smith" oninput="
+                const loginBtn = document.querySelector('#loginGuest');
+                loginBtn.disabled = this.value.trim().length < 1;" />
+            </div>
+          </div>
+        </div>
+        <div class="is-flex is-justify-content-center pb-5">
+          <button id="loginGuest" class="button is-success mr-5" disabled onclick="loginGuest()">Login</button>
+          <button class="button" onclick="document.querySelector('dialog').close()">Cancel</button>
+        </div>
+      </div>
+
+    </dialog>
   </section>
 
-  <footer>Chatr v0.2.0, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
+  <footer>Chatr v0.2.1, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
   </footer>
+
+
 </body>
 
 </html>
