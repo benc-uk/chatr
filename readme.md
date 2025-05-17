@@ -10,7 +10,6 @@ It is built on several Azure technologies, including: _Web PubSub, Functions, St
 ![](https://img.shields.io/github/license/benc-uk/chatr)
 ![](https://img.shields.io/github/last-commit/benc-uk/chatr)
 ![](https://img.shields.io/github/checks-status/benc-uk/chatr/main)
-![](https://img.shields.io/github/workflow/status/benc-uk/chatr/Azure%20Static%20Web%20Apps%20Deploy?label=client-deploy)
 
 Goals:
 
