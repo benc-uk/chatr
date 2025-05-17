@@ -1,0 +1,31 @@
+name: CI Lint
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - 'client/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - 'client/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run lint
+        run: make lint
