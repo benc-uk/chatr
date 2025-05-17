@@ -2,7 +2,7 @@
 AZURE_PREFIX ?= chatrapp
 AZURE_RESGRP ?= projects
 AZURE_REGION ?= westeurope
-AZURE_SUB = $(shell az account show --query id -o tsv)
+deploy-client tunnel: AZURE_SUB ?= $(shell az account show --query id -o tsv)
 
 # Don't change :)
 API_DIR := api
@@ -29,14 +29,18 @@ clean: ## 🧹 Clean up project
 	rm -rf $(API_DIR)/node_modules
 
 deploy-infra: ## 🧱 Deploy required infra in Azure using Bicep
+	@echo "🧱 Deploying infrastructure to Azure..."
 	@./deploy/deploy.sh
 
 deploy-api: ## 🌐 Deploy API to Azure using Function Core Tools
+	@echo "🌐 Deploying API to Azure Function App..."
 	@which func > /dev/null || { echo "👋 Must install the Azure Functions Core Tools https://aka.ms/azure-functions-core-tools"; exit 1; }
-	cd $(API_DIR); func azure functionapp publish $(AZURE_PREFIX)
+	cd $(API_DIR); func azure functionapp publish $(AZURE_PREFIX)-func
 
-deploy-client: ## 🧑 Deploy client to Azure using SWA CLI
-	swa deploy -a ./client -n $(AZURE_PREFIX) -S $(AZURE_SUB) -R $(AZURE_RESGRP) --env production
+deploy-client:  ## 🧑 Deploy client to Azure using SWA CLI
+	@echo "🧑 Deploying client frontend to Azure Static Web App..."
+	@which swa > /dev/null || { echo "👋 Must install the SWA CLI https://aka.ms/swa-cli"; exit 1; }
+	swa deploy -a ./client -n $(AZURE_PREFIX)-swa -S $(AZURE_SUB) -R $(AZURE_RESGRP) --env production
 
 deploy: deploy-infra deploy-api deploy-client ## 🚀 Deploy everything!
 
