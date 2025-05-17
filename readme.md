@@ -28,15 +28,20 @@ Use cases & key features:
 - Detects where users are idle and away from keyboard (default is one minute)
 - Private 'user to user' chats, with notifications and popups
 
-# Screenshot
+# 🌐 Live Version
+
+Try the application out here:
+[chatr.benco.io](https://chatr.benco.io)
+
+# 🖼️ Screenshot
 
 ![](./etc/screen.png)
 
-# Architecture
+# 🗺️ Architecture
 
 ![](./etc/architecture-diagram.drawio.png)
 
-# Client / Frontend
+# 🧑‍💻 Client / Frontend
 
 This is the main web frontend as used by end users via the browser.
 
@@ -50,7 +55,7 @@ Some notes:
 - `client/js/components/chat.js` is a Vue.js component used to host each chat tab in the application
 - The special `.auth/` endpoint provided by Static Web Apps is used to sign users in and fetch their user details, such as userId.
 
-# Server
+# ⛽ Server
 
 This is the backend, handling websocket events to and from Azure Web PubSub, and providing REST API for some operations.
 
@@ -142,7 +147,7 @@ Where `eventType` is one of:
 
 The client code in `client/js/app.js` handles these messages as they are received by the client, and reacts accordingly.
 
-# Some Notes on Design and Service Choice
+# ✨ Some Notes on Design and Service Choice
 
 The plan of this project was to use _Azure Web PubSub_ and _Azure Static Web Apps_, and to host the server side component as a set of serverless HTTP functions in _Azure Functions_. _Azure Static Web Apps_ was selected because it has [amazing support for codeless and config-less user sign-in and auth](https://docs.microsoft.com/en-us/azure/static-web-apps/authentication-authorization), which I wanted to leverage.
 
@@ -152,7 +157,7 @@ Some comments on this approach:
 - A decision was made to create a HTTP function to act as a webhook event handler instead of using the provided `webPubSubConnection` binding. This is partly historical now (see above bullet), but it sill remains a valid approach. For sending messages back to Web PubSub, the server SDK can simply be used within the function code rather than using the `webPubSub` output binding.
 - Table Storage was picked for persisting state as it has a good JS SDK (the new SDK in @azure/data-table was used), it's extremely lightweight and cheap and was good enough for this project, see details below
 
-# State & Entity Design
+# 📚 State & Entity Design
 
 State in Azure Tables consists of two tables (collections) named `chats` and `users`
 
@@ -194,7 +199,7 @@ Users are stored as entities with the fields (columns) described below. As there
 - **userProvider**: Which auth provided the user signed in with `twitter`, `aad` or `github`
 - **idle**: Boolean, indicating if the user us currently idle
 
-# Running and Deploying the App
+# 🛠️ Running and Deploying the App
 
 ## Working Locally
 
@@ -216,15 +221,15 @@ tunnel               🚇 Start AWPS local tunnel tool for local development
 
 ## Deploying to Azure
 
-Deployment is slightly complex due to the number of components and the configuration between them. The makefile target `deploy` should deploy everything for you in a single step using Bicep templates found in the **deploy/** folder
+Deployment is slightly complex due to the number of components and the configuration between them. The makefile target `deploy` should deploy everything for you in a single step using Bicep templates in the **deploy/** folder
 
 [See readme in deploy folder for details and instructions](./deploy)
 
 ## Running Locally
 
-This requires a little effort as the Azure Web PubSub service needs to be able call the HTTP endpoint on your location machine, plus several role assignments & configurations needs to happen, see below. The fabulous Azure Web PubSub local tunnel tool does a great job of providing a way to create a tunnel.
+This requires a little effort as the Azure Web PubSub service needs to be able call the HTTP endpoint on your local machine, plus several role assignments & configs need to be setup, see below. The fabulous Azure Web PubSub local tunnel tool does a great job of providing a way to to tunnel the Azure Web PubSub service to your local machine, so you can run the app locally and test it.
 
-When running locally the Static Web Apps CLI is used and this provides a nice fake user authentication endpoint for us.
+When running locally the Static Web Apps CLI is used and this provides a nice fake user authentication endpoint for us and will also run the API.
 
 ### Pre-Reqs
 
@@ -241,27 +246,28 @@ If these pre-reqs look a little daunting, don't worry, just use the dev containe
 
 A short summary of the steps to getting it running:
 
-- Deploy an _Azure Storage_ account, ensure it has public access.
+- Deploy an _Azure Storage_ account, ensure it has public network access.
 - Deploy an _Azure Web Pub Sub_ instance into the same resource group, also ensure it has public access.
 - Role assignments:
   - Assign yourself the 'Web PubSub Service Owner' role on the Web Pub Sub resource
   - Assign yourself the 'Storage Table Data Contributor' role on the Storage Account
 - Copy `api/local.settings.sample.json` to `api/local.settings.json` and edit the required settings values.
 - In _Azure Web Pub Sub_ settings. Go into the 'Settings' section
-  - Add a hub named **"chat"**
-  - Add an event handler:
+  - Add a hub named **"chat"** (don't pick a different name, and don't include the quotes)
+  - Add an event handler, by clicking 'Add':
     - In 'URL Template Type' select "Tunnel traffic to local"
-    - For the URL template add **"api/eventHandler"**
+    - For the URL template set it to **"api/eventHandler"** (no quotes)
     - Under system events tick **connected** and **disconnected**
     - Leave everything else alone :)
 - Check the values at the top of the `makefile`
   - `AZURE_PREFIX` should be the name of the _Azure Web Pub Sub_ resource
   - `AZURE_RESGRP` should be the resource group you deployed into
   - Rather than edit the `makefile` you can pass these values in after the make command or set them as env vars.
+- Make sure you have the Azure CLI logged in to your account, and the correct subscription selected.
 - Run `make run`
 - Open a second terminal/shell and run `make tunnel`
 - Open `http://localhost:4280/`
 
-# Known Issues
+# 🥲 Known Issues
 
 - Won't run in Firefox as top level await is not yet supported
