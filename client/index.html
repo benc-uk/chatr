@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,34 +7,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chatr App</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 
   <link rel="stylesheet" href="css/main.css" />
 
   <link rel="icon" href="https://emojipedia-us.s3.amazonaws.com/source/skype/289/speech-balloon_1f4ac.png" />
 
-  <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.esm.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/bulma-toast@2.4.4/dist/bulma-toast.esm.js"></script>
 
-  <!-- App stuff -->
+  <!-- Vue.js app -->
   <script type="module" src="js/app.js"></script>
 </head>
 
 <body>
-
   <!-- Main app -->
   <section class="section" id="app">
-    <!-- display spinner if we're not online yet -->
-    <div v-if="(!online || !user || !ws) && !error" class="loaderOverlay">
-      <div class="loader">Loading...</div>
+    <div>
+      <!-- debug the online, ws, user, error state -->
+      <div class="notification is-info" v-if="debug" v-cloak>
+        <div class="debugMessage">
+          <div class="debug">ONLINE: {{ online }}</div>
+          <div class="debug">WS: {{ ws }}</div>
+          <div class="debug">USER: {{ user }}</div>
+          <div class="debug">CHATS: {{ allChats }}</div>
+          <div class="debug">USERS: {{ allUsers }}</div>
+          <div class="debug">ERROR: {{ error }}</div>
+        </div>
+      </div>
     </div>
 
-    <div class="notification is-danger" v-if="error">{{ error }}</div>
+    <!-- display spinner if we're not online yet -->
+    <div v-if="(!online || !user || !ws) && !error && !debug" class="loaderOverlay">
+      <div class="loader">Loading...</div>
+      <div class="is-flex is-justify-content-center">
+        <h1 class="title is-4">Please wait while we connect to the server.</h1>
+      </div>
+      <div class="is-flex is-justify-content-center mt-5">
+        <div class="tag is-success mr-4" v-if="user != null" v-cloak>&nbsp; ACCOUNT <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="!online" v-cloak>&nbsp; ONLINE <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allChats != null" v-cloak>&nbsp; CHATS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="allUsers != null" v-cloak>&nbsp; USERS <i class="fas fa-check"></i></div>
+        <div class="tag is-success mr-4" v-if="ws != null" v-cloak>&nbsp; PUBSUB <i class="fas fa-check"></i></div>
+      </div>
+    </div>
+
+    <div class="notification is-danger" v-if="error" v-cloak>
+      <h1 class="title is-4">💩 Application Error ☠️</h1>
+      <div class="errorMessage">
+        {{ error }}
+      </div>
+    </div>
 
     <div class="columns" v-if="ws && !error">
       <!-- box for group chats -->
-      <div class="column">
+      <div class="column" v-cloak>
         <div class="title is-4">
           Group Chats
           <button @click="newChat()" class="button is-info is-pulled-right"><i class="fas fa-comment-dots"></i>&nbsp;
@@ -46,25 +74,26 @@
             <li v-for="(chat, chatId) in allChats">
               <a class="animate__animated animate__bounceIn" @click.stop="joinChat(chatId, chat.name)">
                 {{ chat.name }}
-                <button v-if="chat.owner == user.userId" class="button is-small is-pulled-right is-rounded is-danger"
-                  @click.stop="deleteChat(chatId)" style="top: -0.2rem">
+                <button v-if="chat.owner == user.userId" class="deleteButton" @click.stop="deleteChat(chatId)">
                   <span class="icon is-small">
-                    <i class="fas fa-trash-alt"></i>
+                    <i class="far fa-circle-xmark"></i>
                   </span>
                 </button>
               </a>
 
             </li>
           </ul>
+          <div v-if="!allChats || Object.keys(allChats).length == 0" class="notification is-info is-light">
+            No group chats available. Create a new one!
+          </div>
         </aside>
       </div>
 
       <!-- box for online users -->
-      <div class="column">
+      <div class="column" v-cloak>
         <div class="title is-4">
           Online Users
-          <a href="/.auth/logout?post_logout_redirect_uri=/login.html" class="button is-info is-pulled-right"
-            v-if="isAzureStaticWebApp">
+          <a href="#" class="button is-info is-pulled-right" @click="logout()">
             <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
           </a>
         </div>
@@ -75,10 +104,9 @@
               <a class="animate__animated animate__bounceIn"
                 :class="{ 'userSelf': userId == user.userId, 'userAway': onlineUser.idle }">
                 <span>
-                  <i class="fab fa-twitter" v-if="onlineUser.userProvider == 'twitter'"></i>
                   <i class="fab fa-microsoft" v-if="onlineUser.userProvider == 'aad'"></i>
                   <i class="fab fa-github-alt" v-if="onlineUser.userProvider == 'github'"></i>
-                  <i class="fas fa-poo" v-if="onlineUser.userProvider == 'fake'"></i>
+                  <i class="fas fa-user" v-if="onlineUser.userProvider == 'guest'"></i>
                 </span>
                 &nbsp;{{ onlineUser.userName }} <span>&nbsp;&nbsp;<i class="fas fa-bed"
                     v-if="onlineUser.idle"></i></span>
@@ -116,22 +144,24 @@
       <div class="modal-background"></div>
       <div class="modal-card">
         <header class="modal-card-head">
-          <p class="modal-card-title">New Chat</p>
+          <p class="modal-card-title"><i class="fas fa-comment-dots"></i> &nbsp; New Chat</p>
         </header>
         <section class="modal-card-body">
           <input class="input" ref="newChatInput" placeholder="Chat name" @keyup.enter="newChatCreate"
             v-model="newChatName"></input>
         </section>
         <footer class="modal-card-foot">
-          <button class="button is-success" @click="newChatCreate">Create</button>
-          <button class="button" @click="newChatCancel">Cancel</button>
+          <div class="buttons">
+            <button class="button is-success" @click="newChatCreate">Create</button>
+            <button class="button" @click="newChatCancel">Cancel</button>
+          </div>
         </footer>
       </div>
     </div>
 
   </section>
 
-  <footer>Chatr v0.1.0, Ben Coleman 2021 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
+  <footer>Chatr v0.2.1, Ben Coleman 2025 <a href="https://github.com/benc-uk/chatr" target="_blank">[GitHub Project]</a>
   </footer>
 </body>
 

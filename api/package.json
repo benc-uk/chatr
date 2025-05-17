@@ -1,20 +1,28 @@
 {
   "name": "chatr-serverless-api",
-  "version": "0.1.0",
-  "description": "Serverless API and event handler for Chatr",
+  "version": "0.2.0",
+  "description": "Backend API and event handler for Chatr",
+  "type": "module",
+  "main": "src/functions/*.js",
   "scripts": {
     "start": "swa start ../client --api-location . --swa-config-location ../client",
     "lint": "eslint . && prettier --check *.js",
+    "lint-client": "eslint ../client/**/*.js && prettier --check ../client/**/*.js",
     "lint-fix": "eslint . --fix && prettier --write *.js"
   },
   "author": "",
   "dependencies": {
     "@azure/data-tables": "^13.3.0",
+    "@azure/functions": "^4.0.0",
     "@azure/identity": "^4.3.0",
-    "@azure/web-pubsub": "^1.1.4"
+    "@azure/web-pubsub": "^1.1.4",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0"
   },
   "devDependencies": {
-    "eslint": "^8.2.0",
-    "prettier": "^2.4.1"
+    "@eslint/js": "^9.26.0",
+    "eslint": "^9.26.0",
+    "globals": "^16.1.0",
+    "prettier": "^3.5.3"
   }
 }

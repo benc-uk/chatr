@@ -3,10 +3,9 @@
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "AzureWebJobsStorage": "",
-    "PUBSUB_CONNECTION_STRING": "__CHANGE_ME__",
+    "PUBSUB_ENDPOINT": "https://__CHANGE_ME__",
     "PUBSUB_HUB": "chat",
     "STORAGE_ACCOUNT_NAME": "__CHANGE_ME__",
-    "AZURE_TENANT_ID": "__CHANGE_ME__",
-    "AZURE_CLIENT_ID": "__CHANGE_ME__"
+    "VALIDATION_TENANT_ID": "__OPTIONAL_FOR_TOKEN_VALIDATION_ONLY__"
   }
 }

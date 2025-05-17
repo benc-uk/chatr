@@ -3,7 +3,7 @@ import { toast } from 'https://cdn.jsdelivr.net/npm/bulma-toast@2.4.1/dist/bulma
 export default {
   uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      let r = (Math.random() * 16) | 0,
+      const r = (Math.random() * 16) | 0,
         v = c == 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
@@ -30,5 +30,11 @@ export default {
     h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
     h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
     return 4294967296 * (2097151 & h2) + (h1 >>> 0)
+  },
+
+  getCookie(name) {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(';').shift()
   },
 }

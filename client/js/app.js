@@ -1,14 +1,13 @@
 import chat from './components/chat.js'
 import utils from './utils.js'
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
+import { createApp } from 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 const MAX_IDLE_TIME = 60
 
-// eslint-disable-next-line
-new Vue({
-  el: '#app',
-
-  components: { chat: chat },
+createApp({
+  components: {
+    chat,
+  },
 
   data() {
     return {
@@ -21,20 +20,19 @@ new Vue({
       online: false,
       // User object which is an instance of SWA clientPrincipal
       // See https://docs.microsoft.com/en-us/azure/static-web-apps/user-information?tabs=javascript#client-principal-data
-      user: {},
+      user: null,
       // Map of chat id to server chat objects, synced with the server
-      allChats: {},
+      allChats: null,
       // Map of users to server user objects, synced with the server
-      allUsers: {},
-      // Are we running in a SWA
-      isAzureStaticWebApp: false,
+      allUsers: null,
       // Used to handle idle detection
       idle: false,
       idleTime: 0,
-      // Used by the ne chat modal dialog
+      // Used by the new chat modal dialog
       openNewChatDialog: false,
       newChatName: '',
       error: '',
+      debug: false,
     }
   },
 
@@ -44,52 +42,63 @@ new Vue({
     document.onkeydown = this.resetIdle
     setInterval(this.idleChecker, 1000)
 
-    // Get user details from special SWA auth endpoint
-    try {
-      let userRes = await fetch(`/.auth/me`)
-      if (!userRes.ok) {
-        throw 'Got a non-200 from to call to /.auth/me'
-      } else {
-        // Get user details from clientPrincipal returned from SWA
-        let userData = await userRes.json()
-        // Handles rare case locally when using emulator
-        if (!userData.clientPrincipal) {
-          document.location.href = 'login.html'
+    // Special case for guest users
+    const guestUser = localStorage.getItem('guestUser')
+    if (guestUser) {
+      if (guestUser) {
+        this.user = {
+          userId: `${utils.hashString(guestUser)}`,
+          userRoles: ['anonymous', 'authenticated'],
+          claims: [],
+          identityProvider: 'guest', // I just invented a provider here!
+          userDetails: guestUser,
+        }
+        console.log('### Will use fake guest user:', this.user)
+      }
+    } else {
+      // If not guest - Get user details from special SWA auth endpoint
+      try {
+        const userRes = await fetch(`/.auth/me`)
+        if (!userRes.ok) {
+          throw 'Failed to call /.auth/me endpoint'
+        } else {
+          // Get user details from clientPrincipal returned from SWA
+          const userData = await userRes.json()
+          this.user = userData.clientPrincipal
+        }
+
+        if (!this.user) {
+          // redirect to login page
+          window.location.href = '/login.html'
           return
         }
-        this.user = userData.clientPrincipal
-        this.isAzureStaticWebApp = true
-      }
-    } catch (err) {
-      // When auth endpoint not available, fallback to a prompt and fake clientPrincipal data
-      // In reality this is not really need anymore as we use the SWA emulator
-      const userName = prompt('Please set your user name')
-      // eslint-disable-next-line
-      if (!userName) window.location.href = window.location.href
-      this.user = {
-        userId: utils.hashString(userName),
-        userDetails: userName,
-        identityProvider: 'fake',
+        console.log('### User details obtained:', JSON.stringify(this.user))
+      } catch (err) {
+        this.error = `Error getting user: ${err}`
       }
     }
 
+    let res = null
     try {
       // Get all existing chats from server
-      let res = await fetch(`/api/chats`)
-      if (!res.ok) throw `chats error: ${await res.text()}`
+      res = await fetch(`/api/chats`)
+      if (!res.ok) throw `chats API error: ${await res.text()}`
       let data = await res.json()
       this.allChats = data.chats
 
       // Get all existing users from server
       res = await fetch(`/api/users`)
-      if (!res.ok) throw `users error: ${await res.text()}`
+      if (!res.ok) throw `users API error: ${await res.text()}`
       data = await res.json()
       this.allUsers = data.users
 
       // Get URL & token to connect to Azure Web Pubsub
       res = await fetch(`/api/getToken?userId=${this.user.userId}`)
-      if (!res.ok) throw `getToken error: ${await res.text()}`
-      let token = await res.json()
+      if (!res.ok) throw `getToken API error: ${await res.text()}`
+      const token = await res.json()
+
+      console.log('### Data fetched from API')
+      console.log('### PubSub token obtained, creating WS connection to', token.baseUrl)
 
       // Now connect to Azure Web PubSub using the URL we got
       this.ws = new WebSocket(token.url, 'json.webpubsub.azure.v1')
@@ -104,6 +113,7 @@ new Vue({
 
       // Custom notification event, rather that relying on the system connected event
       this.ws.onopen = () => {
+        console.log('### WebSocket connection opened')
         this.ws.send(
           JSON.stringify({
             type: 'event',
@@ -113,15 +123,18 @@ new Vue({
           })
         )
       }
+
+      console.log('### App startup complete, waiting for WebSocket messages')
     } catch (err) {
-      console.error(`API ERROR: ${err}`)
-      this.error = `💩 Failed to get data from the server ${err}, it could be down. You could try refreshing the page 🤷‍♂️`
+      this.error = `Backend error: ${res.status ?? 'Unknown'}\n${err.replaceAll('\\n', '\n')}`
       return
     }
 
     // Handle messages from server
     this.ws.addEventListener('message', (evt) => {
-      let msg = JSON.parse(evt.data)
+      if (this.debug) console.log('### WebSocket message', evt.data)
+
+      const msg = JSON.parse(evt.data)
 
       // System events
       if (msg.type === 'system' && msg.event === 'connected') {
@@ -130,8 +143,8 @@ new Vue({
 
       // Server events
       if (msg.from === 'server' && msg.data.chatEvent === 'chatCreated') {
-        let chat = JSON.parse(msg.data.data)
-        this.$set(this.allChats, chat.id, chat)
+        const chat = JSON.parse(msg.data.data)
+        this.allChats[chat.id] = chat
 
         this.$nextTick(() => {
           const chatList = this.$refs.chatList
@@ -140,8 +153,9 @@ new Vue({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'chatDeleted') {
-        let chatId = msg.data.data
-        this.$delete(this.allChats, chatId)
+        const chatId = msg.data.data
+        this.allChats[chatId] = null
+        delete this.allChats[chatId]
         if (this.joinedChats[chatId]) {
           utils.toastMessage(`💥 Chat deleted by owner, you have been removed!`, 'danger')
           this.onLeaveEvent(chatId)
@@ -149,25 +163,30 @@ new Vue({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOnline') {
-        let newUser = JSON.parse(msg.data.data)
+        const newUser = JSON.parse(msg.data.data)
+
         // If the new user is ourselves, that means we're connected and online
         if (newUser.userId == this.user.userId) {
+          console.log('### User is online')
           this.online = true
         } else {
           utils.toastMessage(`🤩 ${newUser.userName} has just joined`, 'success')
         }
-        this.$set(this.allUsers, newUser.userId, newUser)
+        this.allUsers[newUser.userId] = newUser
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userOffline') {
-        let userId = msg.data.data
-        let userName = this.allUsers[userId].userName
-        this.$delete(this.allUsers, userId)
-        utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
+        const userId = msg.data.data
+        if (msg.data && this.allUsers[userId]) {
+          const userName = this.allUsers[userId].userName
+          this.allUsers[userId] = null
+          delete this.allUsers[userId]
+          utils.toastMessage(`💨 ${userName} has left or logged off`, 'warning')
+        }
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'joinPrivateChat') {
-        let chat = JSON.parse(msg.data.data)
+        const chat = JSON.parse(msg.data.data)
         if (!chat.grabFocus) {
           utils.toastMessage(`💬 Incoming: ${chat.name}`, 'warning')
         }
@@ -175,14 +194,15 @@ new Vue({
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userIsIdle') {
-        let userId = msg.data.data
-        this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: true })
+        const userId = msg.data.data
+        this.allUsers[userId] = { ...this.allUsers[userId], idle: true }
         utils.toastMessage(`💤 User ${this.allUsers[userId].userName} is now idle`, 'link')
       }
 
       if (msg.from === 'server' && msg.data.chatEvent === 'userNotIdle') {
-        let userId = msg.data.data
-        this.$set(this.allUsers, userId, { ...this.allUsers[userId], idle: false })
+        const userId = msg.data.data
+        this.allUsers[userId] = { ...this.allUsers[userId], idle: false }
+
         utils.toastMessage(`🤸‍♂️ User ${this.allUsers[userId].userName} has returned`, 'link')
       }
     })
@@ -258,8 +278,7 @@ new Vue({
       if (this.joinedChats[chatId]) return
 
       this.deactivateChats()
-      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: true, unreadCount: 0 })
-
+      this.joinedChats[chatId] = { id: chatId, name: chatName, active: true, unreadCount: 0 }
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -279,7 +298,7 @@ new Vue({
 
       // If grabbing focus means we should deactivate current chat
       if (grabFocus) this.deactivateChats()
-      this.$set(this.joinedChats, chatId, { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 })
+      this.joinedChats[chatId] = { id: chatId, name: chatName, active: grabFocus, unreadCount: 0 }
     },
 
     //
@@ -297,7 +316,7 @@ new Vue({
     // Deactivate all tabs
     //
     deactivateChats() {
-      for (let chatId in this.joinedChats) {
+      for (const chatId in this.joinedChats) {
         this.joinedChats[chatId].active = false
       }
     },
@@ -313,7 +332,9 @@ new Vue({
     // Vue event handler for when leave is clicked in child chat component
     //
     onLeaveEvent(chatId) {
-      this.$delete(this.joinedChats, chatId)
+      this.joinedChats[chatId] = null
+      delete this.joinedChats[chatId]
+
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -369,6 +390,11 @@ new Vue({
     // Remove a chat if you are the owner
     //
     deleteChat(chatId) {
+      const ok = confirm('Are you sure you want to delete this chat? This will remove it for all users.')
+      if (!ok) return
+
+      this.allChats[chatId] = { ...this.allChats[chatId], name: 'DELETING...' }
+
       this.ws.send(
         JSON.stringify({
           type: 'event',
@@ -378,5 +404,18 @@ new Vue({
         })
       )
     },
+
+    //
+    // Logout and remove the guest user cookie
+    //
+    logout() {
+      if (this.user.identityProvider === 'guest') {
+        localStorage.removeItem('guestUser')
+        window.location.href = '/login.html'
+        return
+      }
+
+      window.location.href = '/.auth/logout?post_logout_redirect_uri=/login.html'
+    },
   },
-})
+}).mount('#app')
