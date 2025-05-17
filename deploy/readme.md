@@ -1,34 +1,51 @@
 # 🚀 Deploying Chatr
 
-Pre-reqs:
+This document describes how to deploy the Chatr application to Azure using Bicep and the Azure CLI.
+The Chatr application is a full-stack web application that consists of a frontend built with React and a backend API built with Azure Functions. The deployment process involves creating the necessary Azure resources, deploying the API to Azure Functions, and deploying the frontend to Azure Static Web Apps.
 
-- Bash
+### Pre-reqs:
+
+- Bash & make
 - Azure CLI v2.22+
-- [Fork of this repo](https://github.com/benc-uk/chatr) in GitHub
-- [A GitHub PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with admin rights to the forked repo
-
-The reason a fork is required is due to Azure Static WebApps having a slightly usual deployment model, after creating the resource in Azure, a GitHub Actions workflow is automatically created (by ARM) in the repo containing the app code, this workflow carries out the task of building/bundling and deploying the app.  
-If you were to work from a clone, the deployment would try to create this workflow in my repo, which would fail.
+- [Static Web Apps CLI](https://azure.github.io/static-web-apps-cli/)
+- [Azure Function Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=linux%2Cisolated-process%2Cnode-v4%2Cpython-v2%2Chttp-trigger%2Ccontainer-apps&pivots=programming-language-javascript#install-the-azure-functions-core-tools)
 
 ### Deployment Notes
 
 - The deployment is defined in an Azure Bicep template `main.bicep` and uses modules for the various child resources.
 - To aid deployment a bash script is used `deploy.sh` this does various checks and configuration handling.
 - The Bicep template is deployed using `az deployment sub create` as a subscription level template, that way the resource group can also be defined in the template.
-- Outputs are used to pass values from modules to the main template and to the overall deployment output.
-- The Static Web App config values (app settings) can not be set at resource deployment time, these have to be configured after the app code and function app have been deployed as a separate step.
-- Due to a [bug in the Azure CLI](https://github.com/Azure/azure-cli/issues/17792), the command `az staticwebapp appsettings set` does not function as intended. A workaround has been found using `az rest --method put`
+
+A number of Azure resources are created as part of the deployment:
+
+- Azure Web PubSub
+- Azure Static Web App
+- Azure Function App
+- Azure Storage Account
+- Azure Application Insights
+
+Roles are assigned from the Azure Function App's system managed identity as follows:
+
+- Web PubSub - `Web PubSub Service Owner`
+- Storage Account - `Storage Blob Data Contributor`
+- Storage Account - `Storage Table Data Contributor`
+- Application Insights - `Monitoring Metrics Publisher`
 
 # Deploy using make
 
 From the root of the project run
 
 ```
-make deploy GITHUB_TOKEN={{Your GitHub PAT token}} \
-  GITHUB_REPO={{GitHub URL of your fork}} \
-  AZURE_RESGRP={{Name of Azure resource group, will be created}} \
-  AZURE_REGION={{Azure region to deploy to}} \
-  AZURE_PREFIX={{Resource name prefix, e.g. mychatr}}
+make deploy
+  AZURE_RESGRP={Name of Azure resource group, will be created} \
+  AZURE_REGION={Azure region to deploy to} \
+  AZURE_PREFIX={Resource name prefix, e.g. mychatr}
 ```
 
-> Note when picking a value for AZURE_PREFIX, use something other than "chatr" as that will result in resource name clash
+You can also run:
+
+- `make deploy-infra` - Deploy just the Azure resources
+- `make deploy-api` - Deploy the API to the Function App (needs deploy-infra to have run)
+- `make deploy-client` - Deploy the frontend app to Static Web App (needs deploy-infra to have run)
+
+> Note when picking a value for AZURE_PREFIX, use something other than "chatr" as that will result in resource name clash!
