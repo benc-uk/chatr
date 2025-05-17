@@ -229,6 +229,8 @@ When running locally the Static Web Apps CLI is used and this provides a nice fa
 
 ### Pre-Reqs
 
+If these pre-reqs look a little daunting, don't worry, just use the dev container in the repo, this has everything you need to run and deploy the app.
+
 - Linux / MacOS / WSL with bash make etc
 - Node.js & npm
 - [Static Web Apps CLI](https://azure.github.io/static-web-apps-cli/)

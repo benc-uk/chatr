@@ -2,7 +2,7 @@
 AZURE_PREFIX ?= chatrapp
 AZURE_RESGRP ?= projects
 AZURE_REGION ?= westeurope
-AZURE_SUB = $(shell az account show --query id -o tsv)
+deploy-client tunnel: AZURE_SUB ?= $(shell az account show --query id -o tsv)
 
 # Don't change :)
 API_DIR := api
@@ -37,7 +37,7 @@ deploy-api: ## 🌐 Deploy API to Azure using Function Core Tools
 	@which func > /dev/null || { echo "👋 Must install the Azure Functions Core Tools https://aka.ms/azure-functions-core-tools"; exit 1; }
 	cd $(API_DIR); func azure functionapp publish $(AZURE_PREFIX)-func
 
-deploy-client: ## 🧑 Deploy client to Azure using SWA CLI
+deploy-client:  ## 🧑 Deploy client to Azure using SWA CLI
 	@echo "🧑 Deploying client frontend to Azure Static Web App..."
 	@which swa > /dev/null || { echo "👋 Must install the SWA CLI https://aka.ms/swa-cli"; exit 1; }
 	swa deploy -a ./client -n $(AZURE_PREFIX)-swa -S $(AZURE_SUB) -R $(AZURE_RESGRP) --env production
