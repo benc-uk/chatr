@@ -1,12 +1,8 @@
 param location string = 'westeurope'
 param name string = 'chatr'
-param sku string = 'Free'
-param branch string = 'main'
-param repoUrl string
-@secure()
-param repoToken string
+param sku string = 'Standard'
 
-resource staticApp 'Microsoft.Web/staticSites@2021-02-01' = {
+resource staticApp 'Microsoft.Web/staticSites@2024-04-01' = {
   name: name
   location: location
 
@@ -14,15 +10,8 @@ resource staticApp 'Microsoft.Web/staticSites@2021-02-01' = {
     name: sku
   }
 
-  properties: {
-    repositoryUrl: repoUrl
-    branch: branch
-    repositoryToken: repoToken
-    buildProperties: {
-      appLocation: 'client'
-      apiLocation: 'api'
-    }
-  }
+  // No longer link to GitHub, we will deploy the app using the SWA CLI
+  properties: {}
 }
 
 output appHostname string = staticApp.properties.defaultHostname
