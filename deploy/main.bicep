@@ -133,6 +133,7 @@ module assignRoleFuncDeploymentReader 'modules/role-assignment.bicep' = {
   }
 }
 
+// TODO: Add principals to storage
 output appUrl string = 'https://${staticApp.outputs.appHostname}'
 output pubSubConnStr string = pubsub.outputs.pubSubConnStr // Use direct output from pubsub module
 output storageAccountName string = storage.outputs.storageAccountName // Corrected to use storage module output

@@ -8,13 +8,12 @@ const { TableServiceClient, TableClient } = require('@azure/data-tables')
 const { DefaultAzureCredential } = require('@azure/identity')
 
 const account = process.env.STORAGE_ACCOUNT_NAME
-const accountKey = process.env.STORAGE_ACCOUNT_KEY
 const chatsTable = 'chats'
 const usersTable = 'users'
 const partitionKey = 'chatr'
 
-if (!account || !accountKey) {
-  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME and/or STORAGE_ACCOUNT_KEY is not set')
+if (!account) {
+  console.log('### 💥 Fatal! STORAGE_ACCOUNT_NAME is not set')
 }
 
 const credential = new DefaultAzureCredential()

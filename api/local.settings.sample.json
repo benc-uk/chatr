@@ -6,6 +6,7 @@
     "PUBSUB_CONNECTION_STRING": "__CHANGE_ME__",
     "PUBSUB_HUB": "chat",
     "STORAGE_ACCOUNT_NAME": "__CHANGE_ME__",
-    "STORAGE_ACCOUNT_KEY": "__CHANGE_ME__"
+    "AZURE_TENANT_ID": "__CHANGE_ME__",
+    "AZURE_CLIENT_ID": "__CHANGE_ME__"
   }
 }
